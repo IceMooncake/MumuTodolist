@@ -1,9 +1,9 @@
 <template>
   <div>
     <transition-group name="list" tag="ul">
-      <li v-for="(item, index) in list" :key="item.id" @click="moveToTop(index)">
-        {{ item.name }}
-      </li>
+      <div v-for="(item, index) in list" :key="item.id" @click="moveToTop(index)">
+        <div>{{ item.name }}</div>
+      </div>
     </transition-group>
   </div>
 </template>
