@@ -1,24 +1,27 @@
 /** ----------导入模块和定义常量值---------- */
-require('dotenv').config();
+
 const isOnServer = 0;
+const error503Message = '数据库连接出错 \n 多试几次吧www';
+
+require('dotenv').config();
 const PORT = process.env.PORT || 3000;
-const SSH_PATH = process.env.SSH_PATH;
+const SSH_PATH = process.env.SSH_PATH || '/var/lib';
 const OUTER_DB_HOST = process.env.OUTER_DB_HOST || 'localhost';
 const INNER_DB_HOST = process.env.INNER_DB_HOST || 'localhost';
 const DB_USER = process.env.DB_USER || 'username';
 const DB_PASS = process.env.DB_PASS || 'password';
 const DB_NAME = process.env.DB_NAME || 'database';
+const secretKey = process.env.SECRET_KEY || 'secretKet';
+
 const express = require('express');
-const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const mysql = require('mysql2/promise');
 const https = require('https');
 const fs = require('fs');
 const app = express();
-const jwt = require('jsonwebtoken');
-const secretKey = process.env.SECRET_KEY;
-const error503Message = '数据库连接出错 \n 多试几次吧www';
 
 // 使用 body-parser 中间件解析请求体
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -122,7 +125,7 @@ async function executeQuery(query, values, n) {
     } catch (error) {
       retries++;
       if (retries >= maxRetries) {
-        if(error) console.error('出现错误:', error.message);
+        if (error) console.error('出现错误:', error.message);
         return null;
       }
     } finally {
@@ -181,7 +184,7 @@ app.get('/api/getTasks', ipRequestLimit(1 * 1000, 10), async (req, res) => {
   const query = "SELECT * FROM task_list WHERE user_id = ?";
   const rows = await executeQuery(query, [req.query.userId], 5);
   if (!rows) return res.status(503).json({ error: error503Message });
-  return res.status(200).json({ success: true, tasks: rows, query:req.query});
+  return res.status(200).json({ success: true, tasks: rows, query: req.query });
 })
 
 /**
@@ -190,19 +193,19 @@ app.get('/api/getTasks', ipRequestLimit(1 * 1000, 10), async (req, res) => {
 app.get('/api/getCurrentTaskId', ipRequestLimit(1 * 1000, 10), async (req, res) => {
   const query = "SELECT * FROM user_data WHERE id = ?";
   const rows = await executeQuery(query, [req.query.userId]);
-  if(!rows[0]) return res.status(503).json({ error: error503Message });
+  if (!rows[0]) return res.status(503).json({ error: error503Message });
   return res.status(200).json({ taskId: rows[0].current_task_id });
-}), 
+}),
 
-/**
- * 根据任务ID获取一个任务
- */
-app.get('/api/getTaskById', ipRequestLimit(1 * 1000, 10), async (req, res) => {
-  const quert = "SELECT * FROM task_list WHERE id = ?";
-  const rows = await executeQuery(quert, [req.query.taskId]);
-  if(!rows) return res.status(503).json({ error: error503Message });
-  return res.status(200).json({ task: rows[0]});
-})
+  /**
+   * 根据任务ID获取一个任务
+   */
+  app.get('/api/getTaskById', ipRequestLimit(1 * 1000, 10), async (req, res) => {
+    const quert = "SELECT * FROM task_list WHERE id = ?";
+    const rows = await executeQuery(quert, [req.query.taskId]);
+    if (!rows) return res.status(503).json({ error: error503Message });
+    return res.status(200).json({ task: rows[0] });
+  })
 
 /**
  * 增加任务列表
@@ -211,8 +214,8 @@ app.post('/api/addTask', ipRequestLimit(1 * 1000, 10), async (req, res) => {
   const { userId, taskName, taskDetail, deadline } = req.body;
   const query = "INSERT INTO task_list (user_id, task_name, task_detail, deadline) VALUES (?, ?, ?, ?)";
   const rows = await executeQuery(query, [userId, taskName, taskDetail, deadline]);
-  if(!rows) return res.status(503).json({error: error503Message});
-  return res.status(200).json({success:true});
+  if (!rows) return res.status(503).json({ error: error503Message });
+  return res.status(200).json({ success: true });
 })
 
 /**
@@ -221,8 +224,8 @@ app.post('/api/addTask', ipRequestLimit(1 * 1000, 10), async (req, res) => {
 app.delete('/api/deleteTask/:taskId', ipRequestLimit(1 * 1000, 10), async (req, res) => {
   const query = "DELETE FROM task_list WHERE id = ?"
   const rows = await executeQuery(query, [req.params.taskId]);
-  if(rows.affectedRows == 0) return res.status(503).json({error: error503Message});
-  return res.status(200).json({success:true});
+  if (rows.affectedRows == 0) return res.status(503).json({ error: error503Message });
+  return res.status(200).json({ success: true });
 })
 
 /**
@@ -232,8 +235,8 @@ app.put('/api/updateTask', ipRequestLimit(1 * 1000, 10), async (req, res) => {
   const { taskId, userId, taskName, taskDetail, deadline } = req.body;
   const query = "UPDATE task_list SET user_id = ?, task_name = ?, task_detail = ?, deadline = ? WHERE id = ?";
   const rows = await executeQuery(query, [userId, taskName, taskDetail, deadline, taskId]);
-  if(!rows) return res.status(503).json({error: error503Message});
-  return res.status(200).json({success:true});
+  if (!rows) return res.status(503).json({ error: error503Message });
+  return res.status(200).json({ success: true });
 })
 
 /**
@@ -243,8 +246,8 @@ app.post('/api/setCurrentTask', ipRequestLimit(1 * 1000, 10), async (req, res) =
   const { taskId, userId } = req.body;
   const query = "UPDATE user_data SET current_task_id = ? WHERE id = ?";
   const rows = await executeQuery(query, [taskId, userId]);
-  if(!rows) return res.status(503).json({error: error503Message});
-  return res.status(200).json({success:true});
+  if (!rows) return res.status(503).json({ error: error503Message });
+  return res.status(200).json({ success: true });
 })
 
 /**
@@ -254,8 +257,8 @@ app.post('/api/completTask', ipRequestLimit(1 * 1000, 10), async (req, res) => {
   const { taskId, finishTime } = req.body;
   const query = "UPDATE task_list SET finish_time = ? WHERE id = ?";
   const rows = await executeQuery(query, [finishTime, taskId]);
-  if(!rows) return res.status(503).json({error: error503Message});
-  return res.status(200).json({success:true});
+  if (!rows) return res.status(503).json({ error: error503Message });
+  return res.status(200).json({ success: true });
 })
 
 /**

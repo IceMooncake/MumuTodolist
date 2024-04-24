@@ -69,6 +69,19 @@ export default {
   },
 
   methods: {
+    showTip(tipInfo) {
+      this.$emit('show-tip', tipInfo);
+    },
+    
+    getFormatTime(Date) {
+      const currentTime = Date;
+      const year = String(currentTime.getFullYear()).padStart(4, '0');
+      const month = String(currentTime.getMonth() + 1).padStart(2, '0');
+      const day = String(currentTime.getDate()).padStart(2, '0');
+      const hour = String(currentTime.getHours()).padStart(2, '0');
+      const minute = String(currentTime.getMinutes()).padStart(2, '0');
+      return year + '-' + month + '-' + day + ' ' + hour + ':' + minute;
+    },
 
     async fetchItems() {
       try {
@@ -107,7 +120,7 @@ export default {
         // 超时未完成的任务做标志
         this.taskList.forEach(item => { if (new Date(item.deadline).getTime() - currentTime.getTime() < 0) item.isOverTime = true });
         // 正确显示时间
-        this.taskList.forEach(item => { item.deadline = this.getStringDate(new Date(item.deadline)) + ' ' + this.getStringTime(new Date(item.deadline)) });
+        this.taskList.forEach(item => { item.deadline = this.getFormatTime(new Date(item.deadline)) });
       } catch (e) {
         console.error(e);
       }
@@ -121,20 +134,11 @@ export default {
       this.clickItem = (this.clickItem === item) ? item : { id: null };
     },
 
-    showTip(tipInfo) {
-      this.isShowTip = true;
-      this.tipInfo = tipInfo;
-      this.tipInfoId += 1;
-      let remmberInfoId = this.tipInfoId;
-      setTimeout(() => {
-        if (remmberInfoId === this.tipInfoId) this.isShowTip = false;
-      }, 2000)
-    },
-
     async deleteTask(taskId) {
       try {
         await axios.delete(`${apiUrl}/api/deleteTask/${taskId}`);
         this.showTip('删除成功');
+        this.resetItemMouseDown();
         this.fetchItems();
       } catch (e) {
         this.showTip('删除失败www再试一下吧');
@@ -145,6 +149,7 @@ export default {
       try {
         await axios.post(`${apiUrl}/api/setCurrentTask`, { taskId: taskId, userId: this.currentUserId });
         this.showTip('设置成功');
+        this.resetItemMouseDown();
         this.fetchItems();
       } catch (e) {
         this.showTip('失败了www再试一下吧');

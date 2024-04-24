@@ -1,5 +1,5 @@
 <template>
-  <div class="container" :class="{ 'show-content': isShowContent }" @click="handleItemClick({ id: null })">
+  <div class="container" :class="{ 'show-content': isShowContent }" @click="resetClickItem()">
     <!--头部导航栏-->
     <div class="header-bar">
       <div class="logout-btn" @click="logout">登出</div>
@@ -7,7 +7,7 @@
       <div class="show-lovertask-btn" :class="{ 'show-lovertask-btn-false': isShowLoverTask === false }"
         @click="changeShowLoverTask()" v-if="isBingMu">偷窥</div>
     </div>
-    <TaskList :is-show-lover-task=isShowLoverTask></TaskList>
+    <task-list ref="tasklist" :is-show-lover-task="isShowLoverTask" @show-tip="showTip"></task-list>
     <!--固定的一个添加任务按钮-->
     <div class="add-button" @click="showOverlayToAdd()">+</div>
     <!--输入框的遮罩层，平时隐藏在页面底部-->
@@ -70,11 +70,9 @@ export default {
       tipInfoId: 0,
       tipInfo: '一些信息',
       overlayTitle: 'Title',
-      taskList: [],
       currentUserId: this.$route.params.id,
       isBingMu: this.$route.params.id == 1 || this.$route.params.id == 2,
       currentTaskId: null,
-      clickItem: { id: null },
       inputForm: {
         taskId: '',
         taskName: '',
@@ -92,18 +90,20 @@ export default {
 
   methods: {
 
-    getStringDate(Date) {
-      const currentTime = Date;
-      const year = String(currentTime.getFullYear()).padStart(4, '0');
-      const month = String(currentTime.getMonth() + 1).padStart(2, '0');
-      const day = String(currentTime.getDate()).padStart(2, '0');
+    resetClickItem() {
+      this.$refs.tasklist.handleItemClick({id: null});
+    },
+
+    getStringDate(FullDate) {
+      const year = String(FullDate.getFullYear()).padStart(4, '0');
+      const month = String(FullDate.getMonth() + 1).padStart(2, '0');
+      const day = String(FullDate.getDate()).padStart(2, '0');
       return year + '-' + month + '-' + day;
     },
 
-    getStringTime(Time) {
-      const currentTime = Time;
-      const hour = String(currentTime.getHours()).padStart(2, '0');
-      const minute = String(currentTime.getMinutes()).padStart(2, '0');
+    getStringTime(FullDate) {
+      const hour = String(FullDate.getHours()).padStart(2, '0');
+      const minute = String(FullDate.getMinutes()).padStart(2, '0');
       return hour + ':' + minute;
     },
 
@@ -117,14 +117,6 @@ export default {
 
     changeShowLoverTask() {
       this.isShowLoverTask = !this.isShowLoverTask;
-    },
-
-    handleItemClick(item) {
-      this.clickItem = (this.clickItem.id === item.id) ? { id: null } : item;
-    },
-
-    resetItemMouseDown(item) {
-      this.clickItem = (this.clickItem === item) ? item : { id: null };
     },
 
     showTip(tipInfo) {
@@ -258,6 +250,7 @@ export default {
   },
 
   mounted() {
+    console.log(this.$refs.tasklist);
     setTimeout(() => {
       this.isShowContent = true;
     }, 100);
