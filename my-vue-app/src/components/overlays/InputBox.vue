@@ -1,5 +1,4 @@
 <template>
-    <!--输入框的遮罩层，平时隐藏在页面底部-->
     <div class="input-box-overlay" :class="{ 'input-box-overlay-hidden': isShowInputOverlay === false }">
         <div class="input-box" :class="{ 'input-box-hidden': isShowInputOverlay === false }">
             <div class="input-box-list">
@@ -35,31 +34,42 @@ export default {
         return {
             isShowInputOverlay: false,
             overlayTitle: '',
-            inputForm: {
-                taskId: '',
-                taskName: '',
-                taskDetail: '',
-                taskDate: '',
-                taskTime: ''
-            },
+            currentUserId: this.$route.params.id,
+            inputForm: { taskId: '', taskName: '', taskDetail: '', taskDate: '', taskTime: '' },
         }
     },
     props: {
-        submitButtonText: String,
         showTip: Function,
         fetchItems: Function,
-        getStringDate: Function,
-        getStringTime: Function,
     },
     methods: {
-        handleSubmitAction() {
-            this.$emit('submit');
-        },
-        async addTask() {
+        checkFormEmpty() {
             if (!this.inputForm.taskName) this.showTip('请输入代办名称');
             else if (!this.inputForm.taskDate) this.showTip('请选择日期');
             else if (!this.inputForm.taskTime) this.showTip('请选择时间');
-            else {
+            else return false;
+            return true;
+        },
+
+        setFormEmpty() {
+            this.inputForm = { taskId: '', taskName: '', taskDetail: '', taskDate: '', taskTime: '' };
+        },
+
+        getStringDate(FullDate) {
+            const year = String(FullDate.getFullYear()).padStart(4, '0');
+            const month = String(FullDate.getMonth() + 1).padStart(2, '0');
+            const day = String(FullDate.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
+        },
+
+        getStringTime(FullDate) {
+            const hour = String(FullDate.getHours()).padStart(2, '0');
+            const minute = String(FullDate.getMinutes()).padStart(2, '0');
+            return hour + ':' + minute;
+        },
+
+        async addTask() {
+            if (!this.checkFormEmpty()) {
                 const inputForm = this.inputForm;
                 try {
                     await axios.post(`${apiUrl}/api/addTask`, {
@@ -71,16 +81,13 @@ export default {
                     this.showTip('添加成功');
                     this.fetchItems();
                 } catch (e) {
-                    this.showTip('添加失败www再试一下吧');
+                    this.showTip('失败了www再试一下吧');
                 }
             }
         },
 
         async updateTask() {
-            if (!this.inputForm.taskName) this.showTip('请输入代办名称');
-            else if (!this.inputForm.taskDate) this.showTip('请选择日期');
-            else if (!this.inputForm.taskTime) this.showTip('请选择时间');
-            else {
+            if (!this.checkFormEmpty) {
                 const inputForm = this.inputForm;
                 try {
                     await axios.put(`${apiUrl}/api/updateTask`, {
@@ -93,12 +100,13 @@ export default {
                     this.showTip('修改成功');
                     this.fetchItems();
                 } catch (e) {
-                    this.showTip('修改失败www再试一下吧');
+                    this.showTip('失败了www再试一下吧');
                 }
             }
         },
 
         showOverlayToAdd() {
+            this.setFormEmpty();
             const currentTime = new Date();
             if (!this.inputForm.taskDate) this.inputForm.taskDate = this.getStringDate(currentTime);
             if (!this.inputForm.taskTime) this.inputForm.taskTime = this.getStringTime(currentTime);

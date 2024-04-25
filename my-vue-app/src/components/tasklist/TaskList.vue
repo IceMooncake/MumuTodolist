@@ -11,9 +11,9 @@
       <!--每个任务的按钮遮罩层-->
       <TaskListEditOverlay :item="item" :class="{ 'task-edit-overlay-hidden': clickItem.id !== item.id }"
         :showOverlayToUpdate="showOverlayToUpdate" :fetchItems="fetchItems" :showTip="showTip"
-        :currentUserId="currentUserId" :getFormatTime="getFormatTime" />
+        :getFormatTime="getFormatTime" />
       <!--每个任务的信息-->
-      <TaskListItemInfo :item="item" :isHidden="clickItem.id === item.id && item.isLoverTask !== true"/>
+      <TaskListItemInfo :item="item" :isHidden="clickItem.id === item.id && item.isLoverTask !== true" />
     </div>
   </div>
 </template>
@@ -34,8 +34,6 @@ export default {
     isShowLoverTask: Boolean,
     showTip: Function,
     showOverlayToUpdate: Function,
-    getStringDate: Function,
-    getStringTime: Function,
   },
 
   data() {
@@ -49,8 +47,13 @@ export default {
   },
 
   methods: {
-    getFormatTime(date) {
-      return this.getStringDate(date) + ' ' + this.getStringTime(date);
+    getFormatTime(FullDate) {
+      const year = String(FullDate.getFullYear()).padStart(4, '0');
+      const month = String(FullDate.getMonth() + 1).padStart(2, '0');
+      const day = String(FullDate.getDate()).padStart(2, '0');
+      const hour = String(FullDate.getHours()).padStart(2, '0');
+      const minute = String(FullDate.getMinutes()).padStart(2, '0');
+      return year + '-' + month + '-' + day + ' ' + hour + ':' + minute;
     },
 
     async fetchItems() {
@@ -115,10 +118,6 @@ export default {
 
 
 <style scoped>
-* {
-  user-select: none;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-}
 
 .list {
   overflow-y: auto;

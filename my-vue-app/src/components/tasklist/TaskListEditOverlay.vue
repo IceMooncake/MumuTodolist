@@ -34,8 +34,13 @@ import axios from 'axios';
 const apiUrl = process.env.VUE_APP_API_URL;
 
 export default {
+    data() {
+        return {
+            currentUserId: this.$route.params.id,
+        }
+    },
+    
     props: {
-        currentUserId: String,
         item: Object,
         getFormatTime: Function,
         showOverlayToUpdate: Function,
