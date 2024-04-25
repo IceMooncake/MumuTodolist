@@ -87,7 +87,7 @@ export default {
         },
 
         async updateTask() {
-            if (!this.checkFormEmpty) {
+            if (!this.checkFormEmpty()) {
                 const inputForm = this.inputForm;
                 try {
                     await axios.put(`${apiUrl}/api/updateTask`, {
