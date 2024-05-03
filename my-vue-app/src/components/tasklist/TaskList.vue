@@ -1,33 +1,34 @@
 <template>
   <!--任务列表-->
-  <div class="list" @click.stop="">
-    <!--未获取到值时显示正在获取值-->
-    <div v-if="taskList.length === 0">正在获取值，请稍后</div>
+  <transition-group name="fade" tag="div" class="task-list" @click.stop="">
     <!--任务列表-->
-    <div v-for="item in taskList" :key="item.id" class="task-item"
+    <div v-for="(item, index) in showTaskList" :key="item.id" class="task-item"
       :class="{ 'task-item-current': item.isCurrentTask, 'task-item-finished': item.finish_time, 'task-item-lover': item.isLoverTask }"
-      @mousedown="resetItemMouseDown(item)" @click="handleItemClick(item)"
+      @mousedown="resetItemMouseDown(item)" @click="handleItemClick(item, index)"
       v-show="isShowLoverTask || !item.isLoverTask">
       <!--每个任务的按钮遮罩层-->
-      <TaskListEditOverlay :item="item" :class="{ 'task-edit-overlay-hidden': clickItem.id !== item.id }"
-        :showOverlayToUpdate="showOverlayToUpdate" :fetchItems="fetchItems" :showTip="showTip"
-        :getFormatTime="getFormatTime" />
-      <!--每个任务的信息-->
-      <TaskListItemInfo :item="item" :isHidden="clickItem.id === item.id && item.isLoverTask !== true" />
+      <TaskListEditOverlay :item="item" :showOverlayToUpdate="showOverlayToUpdate" :fetchItems="fetchItems"
+        :showTip="showTip" :getFormatTime="getFormatTime"
+        :isHidden="clickItem.id !== item.id || item.user_id != currentUserId" />
+      <!--每个任务的信息块-->
+      <TaskListItem :item="item" :isHidden="clickItem.id === item.id" />
     </div>
-  </div>
+
+  </transition-group>
 </template>
 
 <script>
 import axios from 'axios';
 const apiUrl = process.env.VUE_APP_API_URL;
 import TaskListEditOverlay from '@/components/tasklist/TaskListEditOverlay.vue';
-import TaskListItemInfo from '@/components/tasklist/TaskListItemInfo.vue';
-
+import TaskListItem from '@/components/tasklist/TaskListItem.vue';
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 export default {
   components: {
     TaskListEditOverlay,
-    TaskListItemInfo,
+    TaskListItem,
   },
 
   props: {
@@ -38,7 +39,9 @@ export default {
 
   data() {
     return {
-      taskList: [],
+      showTaskList: [],
+      currentTaskList: [],
+      otherTaskList: [],
       currentUserId: this.$route.params.id,
       isBingMu: this.$route.params.id == 1 || this.$route.params.id == 2,
       currentTaskId: null,
@@ -56,46 +59,49 @@ export default {
       return year + '-' + month + '-' + day + ' ' + hour + ':' + minute;
     },
 
-    async fetchItems() {
+    async fetchItems(isShowLoverTask = false) {
+      let userId = this.currentUserId;
+      if (isShowLoverTask === true) userId = this.currentUserId == 1 ? 2 : 1;
       try {
-        let response = await axios.get(`${apiUrl}/api/getTasks?userId=${this.currentUserId}`);
-        this.taskList = response.data.tasks;
-        response = await axios.get(`${apiUrl}/api/getCurrentTaskId?userId=${this.currentUserId}`);
-        this.currentTaskId = response.data.taskId;
+        let response = await axios.get(`${apiUrl}/api/getTasks?userId=${userId}`);
+        let taskList = response.data.tasks;
         // 按照时间排序
         const currentTime = new Date();
-        this.taskList = this.taskList.slice().sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
-        // 当前正在做的任务做标志并置顶
-        this.taskList.forEach(item => {
-          if (item.id === this.currentTaskId) {
-            const index = this.taskList.indexOf(item);
-            if (index !== -1) {
-              this.taskList.splice(index, 1);
-              this.taskList.unshift(item);
-            }
-            item.isCurrentTask = true;
-          }
-        });
-        // 对方的任务
-        if (this.isBingMu) {
-          let loverId = this.currentUserId == 1 ? 2 : 1;
-          let loverTaskId = await axios.get(`${apiUrl}/api/getCurrentTaskId?userId=${loverId}`)
-          let loverTask = await axios.get(`${apiUrl}/api/getTaskById?taskId=${loverTaskId.data.taskId}`)
-          if (loverTask.data.task) loverTask.data.task.isLoverTask = true;
-          if (loverTask.data.task && this.taskList[0] != loverTask.data.task) this.taskList.unshift(loverTask.data.task);
-        }
+        taskList = taskList.slice().sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+        // 当前正在做的任务做标志
+        response = await axios.get(`${apiUrl}/api/getCurrentTaskId?userId=${userId}`);
+        this.currentTaskId = response.data.taskId;
+        const currentTask = taskList.find(item => item.id === this.currentTaskId);
+        if (currentTask) currentTask.isCurrentTask = true;
+        taskList.splice(taskList.indexOf(currentTask), 1);
+        taskList.unshift(currentTask);
         // 未完成的任务列表
-        let unFinishedTasks = this.taskList.filter(item => !item.finish_time);
+        let unFinishedTasks = taskList.filter(item => !item.finish_time);
         // 已完成的任务列表
-        let finishedTasks = this.taskList.filter(item => item.finish_time);
+        let finishedTasks = taskList.filter(item => item.finish_time);
         // 合并两个列表
-        this.taskList = [...unFinishedTasks, ...finishedTasks];
+        taskList = [...unFinishedTasks, ...finishedTasks];
         // 超时未完成的任务做标志
-        this.taskList.forEach(item => { if (new Date(item.deadline).getTime() - currentTime.getTime() < 0) item.isOverTime = true });
+        taskList.forEach(item => { if (new Date(item.deadline).getTime() - currentTime.getTime() < 0) item.isOverTime = true });
         // 正确显示时间
-        this.taskList.forEach(item => { item.deadline = this.getFormatTime(new Date(item.deadline)) });
+        taskList.forEach(item => { item.deadline = this.getFormatTime(new Date(item.deadline)) });
+        // 返回列表
+        return taskList;
       } catch (e) {
         console.error(e);
+      }
+    },
+
+    async showList(isShowLoverTask = false) {
+      let showTaskList = isShowLoverTask === true ? this.otherTaskList : this.currentTaskList;
+      const delayTime = 200 / this.showTaskList.length;
+      while (this.showTaskList.length > 0) {
+        this.showTaskList.pop();
+        await delay(delayTime); // 暂停0.1秒
+      }
+      for (const item of showTaskList) {
+        this.showTaskList.push(item);
+        await delay(delayTime); // 暂停0.1秒
       }
     },
 
@@ -109,8 +115,10 @@ export default {
 
   },
 
-  mounted() {
-    this.fetchItems();
+  async mounted() {
+    this.currentTaskList = await this.fetchItems();
+    if (this.isBingMu) this.otherTaskList = await this.fetchItems(true);
+    this.showList();
   },
 
 };
@@ -118,8 +126,25 @@ export default {
 
 
 <style scoped>
+.list-move {
+  transition: transform 1s ease-in-out;
+}
 
-.list {
+.fade-enter-active {
+  transform: translateY(50px);
+  opacity: 0;
+}
+
+.fade-leave-active {
+  transform: translateY(50px);
+  opacity: 0;
+}
+
+.fade-enter {
+  opacity: 1;
+}
+
+.task-list {
   overflow-y: auto;
   max-height: calc(100% - 80px);
   margin-left: 5%;
@@ -127,17 +152,12 @@ export default {
   scroll-behavior: smooth;
 }
 
-.list::-webkit-scrollbar {
+.task-list::-webkit-scrollbar {
   width: 0;
 }
 
-.task-edit-overlay-hidden {
-  z-index: 0;
-  opacity: 0;
-  left: 100%;
-}
-
 .task-item {
+  transition: all 0.1s ease-in-out, opacity 0.2s ease-in-out;
   position: relative;
   margin: 0 auto;
   border: 1px solid #cccccc;
@@ -148,17 +168,11 @@ export default {
   height: 115px;
 }
 
-.task-item-lover {
-  opacity: 0.6;
-  background-color: #87efe362
-}
-
 .task-item-current {
   background-color: #87ef8c62
 }
 
 .task-item-finished {
-  background-color: #00000026;
-  opacity: 0.6;
+  background-color: #00000013;
 }
 </style>

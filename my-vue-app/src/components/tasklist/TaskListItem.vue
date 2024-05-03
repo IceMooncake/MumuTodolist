@@ -1,4 +1,3 @@
-<!-- TaskInfo.vue -->
 <template>
   <div class="task-info" :class="{'task-info-hidden':isHidden === true}">
     <!-- 任务名称 -->
@@ -29,8 +28,8 @@ export default {
   flex-direction: column;
   margin: 5px;
   top: 0;
-  transition: all 0.32s ease;
   opacity: 1;
+  transition: all 0.32s ease;
   width: calc(100% - 10px);
   height: calc(100% - 10px);
 }

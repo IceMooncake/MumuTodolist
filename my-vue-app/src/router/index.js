@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import axios from 'axios';
 import Home from '@/views/HomePage.vue';
 import Login from '@/views/BingMuLogin.vue';
-import Test from '@/components/tasklist/testTest.vue';
+import Test from '@/views/testTest.vue';
 const routes = [
   {
     path: '/',

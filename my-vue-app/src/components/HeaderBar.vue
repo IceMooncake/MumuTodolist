@@ -27,7 +27,6 @@ export default {
 
 
 <style scoped>
-
 .header-bar {
     width: 100%;
     padding: 15px;

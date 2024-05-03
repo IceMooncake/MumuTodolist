@@ -195,17 +195,7 @@ app.get('/api/getCurrentTaskId', ipRequestLimit(1 * 1000, 10), async (req, res) 
   const rows = await executeQuery(query, [req.query.userId]);
   if (!rows[0]) return res.status(503).json({ error: error503Message });
   return res.status(200).json({ taskId: rows[0].current_task_id });
-}),
-
-  /**
-   * 根据任务ID获取一个任务
-   */
-  app.get('/api/getTaskById', ipRequestLimit(1 * 1000, 10), async (req, res) => {
-    const quert = "SELECT * FROM task_list WHERE id = ?";
-    const rows = await executeQuery(quert, [req.query.taskId]);
-    if (!rows) return res.status(503).json({ error: error503Message });
-    return res.status(200).json({ task: rows[0] });
-  })
+})
 
 /**
  * 增加任务列表
@@ -340,7 +330,7 @@ if (isOnServer == 1) {
  */
 
 // 处理注册请求
-app.post('/api/register_disposed', async (req, res) => {
+app.post('/api/register_disposed', ipRequestLimit(1, -1), async (req, res) => {
   //初始密码000000, lly520
   try {
     const { password } = req.body;
@@ -362,8 +352,18 @@ app.post('/api/register_disposed', async (req, res) => {
 /**
  * 获取当前服务器时间
  */
-app.get('/api/getCurrentTime_disposed', async (req, res) => {
+app.get('/api/getCurrentTime_disposed', ipRequestLimit(1, -1), async (req, res) => {
   const serverTime = new Date();
   serverTime.setHours(serverTime.getHours() + 8); //+8时区
   return res.status(200).json({ currentTime: serverTime });
+})
+
+/**
+ * 根据任务ID获取一个任务
+ */
+app.get('/api/getTaskById_disposed', ipRequestLimit(1, -1), async (req, res) => {
+  const quert = "SELECT * FROM task_list WHERE id = ?";
+  const rows = await executeQuery(quert, [req.query.taskId]);
+  if (!rows) return res.status(503).json({ error: error503Message });
+  return res.status(200).json({ task: rows[0] });
 })

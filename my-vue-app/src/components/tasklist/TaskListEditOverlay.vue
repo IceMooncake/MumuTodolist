@@ -1,6 +1,6 @@
 <template>
     <!--每个任务的编辑按钮的遮罩层-->
-    <div class="task-edit-overlay" v-if="!item.isLoverTask">
+    <div class="task-edit-overlay" :class="{'task-edit-overlay-hidden' : isHidden===true}" v-if="!item.isLoverTask">
         <!--删除按钮-->
         <div class="edit-button edit-button-delete" @click="deleteTask(item.id)">
             <div class="edit-button-text">✘</div>
@@ -41,6 +41,7 @@ export default {
     },
     
     props: {
+        isHidden: Boolean,
         item: Object,
         getFormatTime: Function,
         showOverlayToUpdate: Function,
@@ -100,6 +101,12 @@ export default {
     border-radius: 5px;
     transition: all 0.32s ease;
     background-color: #00000010;
+}
+
+.task-edit-overlay-hidden {
+  z-index: 0;
+  opacity: 0;
+  left: 100%;
 }
 
 .edit-button {

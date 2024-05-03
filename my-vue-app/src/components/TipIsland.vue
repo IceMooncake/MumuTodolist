@@ -39,6 +39,13 @@ export default {
 
 
 <style scoped>
+* {
+  user-select: none;
+  overflow: hidden;
+  /* 隐藏溢出内容 */
+  text-overflow: ellipsis;
+}
+
 .tip-overlay {
     position: fixed;
     display: flex;

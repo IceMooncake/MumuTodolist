@@ -3,7 +3,8 @@
     <!--头部导航栏-->
     <HeaderBar :isShowLoverTask="isShowLoverTask" :changeShowLoverTask="changeShowLoverTask"
       :changePasswordOverlay="changePasswordsOverlay" :logout="logout" />
-    <TaskList ref="tasklist" :is-show-lover-task="isShowLoverTask" :showTip="showTip"
+    <!--任务列表-->
+    <TaskList ref="tasklist" :isShowLoverTask="isShowLoverTask" :showTip="showTip"
       :showOverlayToUpdate="showOverlayToUpdate" />
     <!--固定的一个添加任务按钮-->
     <div class="add-button" @click="showOverlayToAdd()">+</div>
@@ -50,6 +51,7 @@ export default {
 
     changeShowLoverTask() {
       this.isShowLoverTask = !this.isShowLoverTask;
+      this.$refs.tasklist.showList(this.isShowLoverTask);
     },
 
     showTip(tipInfo) {
@@ -87,7 +89,7 @@ export default {
 </script>
 
 
-<style>
+<style scoped>
 * {
   user-select: none;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
@@ -100,13 +102,13 @@ export default {
 
 .container {
   position: fixed;
-  top: 100vh;
   left: 0;
   width: 100%;
   height: 100%;
   background-color: #f1e0f1;
+  background-color: #b5e6ef8e;
   transition: top 0.7s ease, opacity 1.5s ease;
-  opacity: 0;
+  opacity: 1;
 }
 
 .show-content {
