@@ -1,6 +1,6 @@
 <template>
     <!--每个任务的编辑按钮的遮罩层-->
-    <div class="task-edit-overlay" :class="{'task-edit-overlay-hidden' : isHidden===true}" v-if="!item.isLoverTask">
+    <div class="task-edit-overlay" :class="{ 'task-edit-overlay-hidden': isHidden === true }" v-if="!item.isLoverTask">
         <!--删除按钮-->
         <div class="edit-button edit-button-delete" @click="deleteTask(item.id)">
             <div class="edit-button-text">✘</div>
@@ -39,14 +39,14 @@ export default {
             currentUserId: this.$route.params.id,
         }
     },
-    
+
     props: {
         isHidden: Boolean,
         item: Object,
         getFormatTime: Function,
         showOverlayToUpdate: Function,
-        fetchItems: Function,
         showTip: Function,
+        refreshList: Function,
     },
 
     methods: {
@@ -54,7 +54,7 @@ export default {
             try {
                 await axios.delete(`${apiUrl}/api/deleteTask/${taskId}`);
                 this.showTip('删除成功');
-                this.fetchItems();
+                this.refreshList()
             } catch (e) {
                 this.showTip('失败了www再试一下吧');
             }
@@ -64,7 +64,8 @@ export default {
             try {
                 await axios.post(`${apiUrl}/api/setCurrentTask`, { taskId: taskId, userId: this.currentUserId });
                 this.showTip('设置成功');
-                this.fetchItems();
+                if (taskId) this.refreshList();
+                else this.refreshList();
             } catch (e) {
                 this.showTip('失败了www再试一下吧');
             }
@@ -72,11 +73,17 @@ export default {
 
         async completTask(taskId, isDeComplete) {
             try {
-                if (isDeComplete) await axios.post(`${apiUrl}/api/completTask`, { taskId: taskId, finishTime: null });
-                else await axios.post(`${apiUrl}/api/completTask`, { taskId: taskId, finishTime: this.getFormatTime(new Date()) });
-                if (isDeComplete) this.showTip('撤销成功');
-                else this.showTip('完成任务啦');
-                this.fetchItems();
+                if (isDeComplete) {
+                    await axios.post(`${apiUrl}/api/completTask`, { taskId: taskId, finishTime: null });
+                    this.showTip('撤销成功');
+                    this.refreshList();
+                }
+                else {
+                    await axios.post(`${apiUrl}/api/completTask`, { taskId: taskId, finishTime: this.getFormatTime(new Date()) });
+                    this.showTip('完成任务啦，夸夸！');
+                    this.refreshList(this.item, 5);
+                }
+
             } catch (e) {
                 this.showTip('失败了www再试一下吧');
             }
@@ -104,9 +111,9 @@ export default {
 }
 
 .task-edit-overlay-hidden {
-  z-index: 0;
-  opacity: 0;
-  left: 100%;
+    z-index: 0;
+    opacity: 0;
+    left: 100%;
 }
 
 .edit-button {

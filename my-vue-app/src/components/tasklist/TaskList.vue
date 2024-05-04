@@ -1,14 +1,14 @@
 <template>
   <!--任务列表-->
-  <transition-group name="fade" tag="div" class="task-list" @click.stop="">
+  <transition-group name="list" tag="div" class="task-list" @click.stop="">
     <!--任务列表-->
     <div v-for="(item, index) in showTaskList" :key="item.id" class="task-item"
       :class="{ 'task-item-current': item.isCurrentTask, 'task-item-finished': item.finish_time, 'task-item-lover': item.isLoverTask }"
       @mousedown="resetItemMouseDown(item)" @click="handleItemClick(item, index)"
       v-show="isShowLoverTask || !item.isLoverTask">
       <!--每个任务的按钮遮罩层-->
-      <TaskListEditOverlay :item="item" :showOverlayToUpdate="showOverlayToUpdate" :fetchItems="fetchItems"
-        :showTip="showTip" :getFormatTime="getFormatTime"
+      <TaskListEditOverlay :item="item" :showOverlayToUpdate="showOverlayToUpdate" :showTip="showTip"
+        :getFormatTime="getFormatTime" :refreshList="refreshList"
         :isHidden="clickItem.id !== item.id || item.user_id != currentUserId" />
       <!--每个任务的信息块-->
       <TaskListItem :item="item" :isHidden="clickItem.id === item.id" />
@@ -68,13 +68,15 @@ export default {
         // 按照时间排序
         const currentTime = new Date();
         taskList = taskList.slice().sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
-        // 当前正在做的任务做标志
+        // 当前正在做的任务做标志并置顶
         response = await axios.get(`${apiUrl}/api/getCurrentTaskId?userId=${userId}`);
         this.currentTaskId = response.data.taskId;
         const currentTask = taskList.find(item => item.id === this.currentTaskId);
-        if (currentTask) currentTask.isCurrentTask = true;
-        taskList.splice(taskList.indexOf(currentTask), 1);
-        taskList.unshift(currentTask);
+        if (currentTask) {
+          currentTask.isCurrentTask = true;
+          taskList.splice(taskList.indexOf(currentTask), 1);
+          taskList.unshift(currentTask);
+        }
         // 未完成的任务列表
         let unFinishedTasks = taskList.filter(item => !item.finish_time);
         // 已完成的任务列表
@@ -92,17 +94,22 @@ export default {
       }
     },
 
-    async showList(isShowLoverTask = false) {
-      let showTaskList = isShowLoverTask === true ? this.otherTaskList : this.currentTaskList;
+    async showList(showLoverTask = false) {
+      let showTaskList = showLoverTask === true ? [...this.otherTaskList] : [...this.currentTaskList];
       const delayTime = 200 / this.showTaskList.length;
       while (this.showTaskList.length > 0) {
         this.showTaskList.pop();
-        await delay(delayTime); // 暂停0.1秒
+        await delay(delayTime);
       }
       for (const item of showTaskList) {
         this.showTaskList.push(item);
-        await delay(delayTime); // 暂停0.1秒
+        await delay(delayTime);
       }
+    },
+
+    async refreshList() {
+      this.currentTaskList = await this.fetchItems();
+      this.showTaskList = [...this.currentTaskList];
     },
 
     handleItemClick(item) {
@@ -130,17 +137,17 @@ export default {
   transition: transform 1s ease-in-out;
 }
 
-.fade-enter-active {
+.list-enter-active {
   transform: translateY(50px);
   opacity: 0;
 }
 
-.fade-leave-active {
+.list-leave-active {
   transform: translateY(50px);
   opacity: 0;
 }
 
-.fade-enter {
+.list-enter {
   opacity: 1;
 }
 
@@ -157,7 +164,7 @@ export default {
 }
 
 .task-item {
-  transition: all 0.1s ease-in-out, opacity 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out, opacity 0.12s ease-in-out;
   position: relative;
   margin: 0 auto;
   border: 1px solid #cccccc;

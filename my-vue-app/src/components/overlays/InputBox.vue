@@ -40,7 +40,7 @@ export default {
     },
     props: {
         showTip: Function,
-        fetchItems: Function,
+        refreshList: Function,
     },
     methods: {
         checkFormEmpty() {
@@ -71,15 +71,17 @@ export default {
         async addTask() {
             if (!this.checkFormEmpty()) {
                 const inputForm = this.inputForm;
+                const item = {
+                    user_id: this.currentUserId,
+                    task_name: inputForm.taskName,
+                    task_detail: inputForm.taskDetail,
+                    deadline: inputForm.taskDate + ' ' + inputForm.taskTime
+                }
                 try {
-                    await axios.post(`${apiUrl}/api/addTask`, {
-                        userId: this.currentUserId,
-                        taskName: inputForm.taskName,
-                        taskDetail: inputForm.taskDetail,
-                        deadline: inputForm.taskDate + ' ' + inputForm.taskTime
-                    });
+                    await axios.post(`${apiUrl}/api/addTask`, item);
                     this.showTip('添加成功');
-                    this.fetchItems();
+                    this.refreshList();
+                    this.closeInputOverlay();
                 } catch (e) {
                     this.showTip('失败了www再试一下吧');
                 }
@@ -89,16 +91,17 @@ export default {
         async updateTask() {
             if (!this.checkFormEmpty()) {
                 const inputForm = this.inputForm;
+                const item = {
+                    task_id: this.inputForm.taskId,
+                    user_id: this.currentUserId,
+                    task_name: inputForm.taskName,
+                    task_detail: inputForm.taskDetail,
+                    deadline: inputForm.taskDate + ' ' + inputForm.taskTime
+                }
                 try {
-                    await axios.put(`${apiUrl}/api/updateTask`, {
-                        taskId: this.inputForm.taskId,
-                        userId: this.currentUserId,
-                        taskName: inputForm.taskName,
-                        taskDetail: inputForm.taskDetail,
-                        deadline: inputForm.taskDate + ' ' + inputForm.taskTime
-                    });
+                    await axios.put(`${apiUrl}/api/updateTask`, item);
                     this.showTip('修改成功');
-                    this.fetchItems();
+                    this.refreshList();
                 } catch (e) {
                     this.showTip('失败了www再试一下吧');
                 }

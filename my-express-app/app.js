@@ -201,9 +201,9 @@ app.get('/api/getCurrentTaskId', ipRequestLimit(1 * 1000, 10), async (req, res) 
  * 增加任务列表
  */
 app.post('/api/addTask', ipRequestLimit(1 * 1000, 10), async (req, res) => {
-  const { userId, taskName, taskDetail, deadline } = req.body;
+  const { user_id, task_name, task_detail, deadline } = req.body;
   const query = "INSERT INTO task_list (user_id, task_name, task_detail, deadline) VALUES (?, ?, ?, ?)";
-  const rows = await executeQuery(query, [userId, taskName, taskDetail, deadline]);
+  const rows = await executeQuery(query, [user_id, task_name, task_detail, deadline]);
   if (!rows) return res.status(503).json({ error: error503Message });
   return res.status(200).json({ success: true });
 })
@@ -222,9 +222,9 @@ app.delete('/api/deleteTask/:taskId', ipRequestLimit(1 * 1000, 10), async (req, 
  * 修改任务列表
  */
 app.put('/api/updateTask', ipRequestLimit(1 * 1000, 10), async (req, res) => {
-  const { taskId, userId, taskName, taskDetail, deadline } = req.body;
+  const { task_id, user_id, task_name, task_detail, deadline } = req.body;
   const query = "UPDATE task_list SET user_id = ?, task_name = ?, task_detail = ?, deadline = ? WHERE id = ?";
-  const rows = await executeQuery(query, [userId, taskName, taskDetail, deadline, taskId]);
+  const rows = await executeQuery(query, [user_id, task_name, task_detail, deadline, task_id]);
   if (!rows) return res.status(503).json({ error: error503Message });
   return res.status(200).json({ success: true });
 })
