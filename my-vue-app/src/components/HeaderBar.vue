@@ -2,8 +2,10 @@
     <div class="header-bar">
         <div class="header-btn" @click="logout()">登出</div>
         <div class="header-btn" @click="changePasswordsOverlay()">修改密码</div>
-        <div class="show-lovertask-btn" :class="{ 'show-lovertask-btn-false': isShowLoverTask === false }"
-            @click="changeShowLoverTask()" v-if="isBingMu">偷窥</div>
+        <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowLoverTask === false }"
+            @click="changeShowLoverTask(); coldDownShowLoverBtn()" :disabled="disShowLoverBtn">偷窥</button>
+        <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowLoverTask === false }"
+            @click="changeShowCalender(); coldDownShowCalender()" :disabled="disCalenderBtn">选择日期</button>
     </div>
 </template>
 
@@ -15,23 +17,34 @@ export default {
         logout: Function,
         changePasswordsOverlay: Function,
         changeShowLoverTask: Function,
+        changeShowCalender: Function,
     },
     data() {
         return {
-            isBingMu: this.$route.params.id == 1 || this.$route.params.id == 2,
+            disShowLoverBtn: false,
+            disCalenderBtn: false,
         };
     },
-
-};
+    methods: {
+        coldDownShowLoverBtn() {
+            this.disShowLoverBtn = true;
+            setTimeout(() => { this.disShowLoverBtn = false }, 500);
+        },
+        coldDownShowCalender() {
+            this.disCalenderBtn = true;
+            setTimeout(() => { this.disCalenderBtn = false }, 300)
+        }
+    }
+}
 </script>
 
 
 <style scoped>
 .header-bar {
     width: 100%;
-    padding: 15px;
+    padding: 10px;
+    margin-bottom: 0;
     overflow: hidden;
-    display: flex;
 }
 
 .header-btn {
@@ -46,7 +59,7 @@ export default {
     cursor: pointer;
 }
 
-.show-lovertask-btn {
+.change-able-btn {
     display: inline-block;
     padding: 7px 15px;
     background-color: rgba(40, 28, 150, 0.365);
@@ -56,9 +69,10 @@ export default {
     border: none;
     border-radius: 20px;
     cursor: pointer;
+    transition: all 0.3s ease-in-out;
 }
 
-.show-lovertask-btn-false {
+.change-able-btn:disabled {
     background-color: rgba(50, 50, 50, 0.653);
 }
 </style>

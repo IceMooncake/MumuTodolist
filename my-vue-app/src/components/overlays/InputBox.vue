@@ -10,7 +10,7 @@
                 <span class="input-item-name">描述</span>
                 <div class="input-box-item">
                     <textarea style="resize: vertical;" v-model="inputForm.taskDetail" maxlength="1000"
-                        class="input-text-border input-item-taskdetail">
+                        class="input-text-border input-item-taskdetail" >sssssss
                     </textarea>
                 </div>
                 <span class="input-item-name">日期及时间</span>
@@ -138,6 +138,9 @@ export default {
 <style scoped>
 .input-box-overlay {
     position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 100%;
     height: 100%;
     top: 0;
@@ -156,20 +159,16 @@ export default {
 }
 
 .input-box {
-    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: all 0.2s ease-in-out;
     background-color: #9edcdce4;
     width: 80%;
-    height: 450px;
+    height: auto;
     padding: 10px;
     border-radius: 5%;
-    top: 50%;
-    left: 50%;
     line-height: 1.5;
-    transform: translate(-50%, -50%);
 }
 
 .input-box-hidden {
@@ -202,6 +201,7 @@ export default {
     justify-content: center;
     align-items: center;
     width: 100%;
+    
 }
 
 .input-item-name {

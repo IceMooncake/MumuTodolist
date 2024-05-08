@@ -2,7 +2,9 @@
   <div class="container" :class="{ 'show-content': isShowContent }" @click="resetClickItem()">
     <!--头部导航栏-->
     <HeaderBar :isShowLoverTask="isShowLoverTask" :changeShowLoverTask="changeShowLoverTask"
-      :changePasswordsOverlay="changePasswordsOverlay" :logout="logout" />
+      :changePasswordsOverlay="changePasswordsOverlay" :logout="logout" :changeShowCalender="changeShowCalender" />
+    <!--日历-->
+    <TopCalender ref="calender" />
     <!--任务列表-->
     <TaskList ref="tasklist" :isShowLoverTask="isShowLoverTask" :showTip="showTip"
       :showOverlayToUpdate="showOverlayToUpdate" />
@@ -23,6 +25,7 @@ import InputBoxOverlay from '@/components/overlays/InputBox.vue';
 import ChangePasswordOverlay from '@/components/overlays/ChangePassword.vue';
 import HeaderBar from '@/components/HeaderBar.vue';
 import TipIsland from '@/components/TipIsland.vue';
+import TopCalender from '@/components/TopCalender.vue';
 
 export default {
   components: {
@@ -31,6 +34,7 @@ export default {
     ChangePasswordOverlay,
     HeaderBar,
     TipIsland,
+    TopCalender,
   },
   data() {
     return {
@@ -52,6 +56,11 @@ export default {
     changeShowLoverTask() {
       this.isShowLoverTask = !this.isShowLoverTask;
       this.$refs.tasklist.showList(this.isShowLoverTask);
+    },
+
+    changeShowCalender() {
+      this.$refs.calender.changeShowCalender();
+      this.$refs.tasklist.changeShowMini(this.$refs.calender.isShow);
     },
 
     showTip(tipInfo) {
@@ -110,6 +119,10 @@ export default {
   background-color: #b5e6ef8e;
   transition: all 0.8s;
   opacity: 0;
+  display: flex;
+  justify-content: center;
+  align-content: flex-start;
+  flex-wrap: wrap;
 }
 
 .show-content {
@@ -130,9 +143,5 @@ export default {
   line-height: 50px;
   cursor: pointer;
   box-shadow: 0 0px 10px rgba(7, 217, 224, 0.466);
-}
-
-.add-edit-button:hover {
-  background-color: #0056b3;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <!--任务列表-->
-  <transition-group name="list" tag="div" class="task-list" @click.stop="">
+  <transition-group name="list" tag="div" class="task-list" :class="{'task-list-mini': isShowMini === true}" @click.stop="">
     <!--任务列表-->
     <div v-for="(item, index) in showTaskList" :key="item.id" class="task-item"
       :class="{ 'task-item-current': item.isCurrentTask, 'task-item-finished': item.finish_time, 'task-item-lover': item.isLoverTask }"
@@ -46,6 +46,7 @@ export default {
       isBingMu: this.$route.params.id == 1 || this.$route.params.id == 2,
       currentTaskId: null,
       clickItem: { id: null },
+      isShowMini: false,
     };
   },
 
@@ -120,6 +121,10 @@ export default {
       this.clickItem = (this.clickItem === item) ? item : { id: null };
     },
 
+    changeShowMini(isShowMini) {
+      this.isShowMini = isShowMini;
+    }
+
   },
 
   async mounted() {
@@ -153,10 +158,15 @@ export default {
 
 .task-list {
   overflow-y: auto;
-  max-height: calc(100% - 80px);
-  margin-left: 5%;
-  margin-right: 5%;
+  transition: all 0.3s ease-in-out;
+  max-height: calc(100% - 60px);
+  width: 90%;
   scroll-behavior: smooth;
+  bottom: 20px;
+}
+
+.task-list-mini {
+  max-height: calc(100% - 400px);
 }
 
 .task-list::-webkit-scrollbar {
