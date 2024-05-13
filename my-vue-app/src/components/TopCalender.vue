@@ -23,12 +23,16 @@
   
   <script>
   export default {
+    props: {
+      showList: Function,
+    },
     data() {
       return {
         currentDate: new Date(),
         selectedDate: null,
         daysOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-        isShow: true,
+        isShow: false,
+        isShowLoverTask: false,
       };
     },
     computed: {
@@ -53,6 +57,8 @@
       selectDate(date) {
         const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), date);
         this.selectedDate = selectedDate;
+        this.showList(this.isShowLoverTask, this.selectedDate);
+        console.log(this.selectedDate);
       },
       previousMonth() {
         this.currentDate = new Date(this.currentDate.setMonth(this.currentDate.getMonth() - 1));
@@ -63,6 +69,9 @@
       changeShowCalender() {
         this.isShow = !this.isShow;
       },
+      setCalenderShowLover(isShow) {
+        this.isShowLoverTask = isShow;
+      }
     },
   };
   </script>

@@ -7,7 +7,7 @@
     <!-- 任务时间 -->
     <div class="task-time-container">
       <span class="task-time-text" :class="{ 'task-time-overtime': item.isOverTime && !item.finish_time }">
-        {{ item.deadline }}
+        {{ item.showDeadline }}
       </span>
     </div>
   </div>

@@ -1,10 +1,10 @@
 <template>
   <div class="container" :class="{ 'show-content': isShowContent }" @click="resetClickItem()">
     <!--头部导航栏-->
-    <HeaderBar :isShowLoverTask="isShowLoverTask" :changeShowLoverTask="changeShowLoverTask"
-      :changePasswordsOverlay="changePasswordsOverlay" :logout="logout" :changeShowCalender="changeShowCalender" />
+    <HeaderBar :changeShowLoverTask="changeShowLoverTask"
+      :changePasswordsOverlay="changePasswordsOverlay" :logout="logout" :changeShowCalender="changeShowCalender" :setCalenderShowLover="setCalenderShowLover"/>
     <!--日历-->
-    <TopCalender ref="calender" />
+    <TopCalender ref="calender" :showList="showList"/>
     <!--任务列表-->
     <TaskList ref="tasklist" :isShowLoverTask="isShowLoverTask" :showTip="showTip"
       :showOverlayToUpdate="showOverlayToUpdate" />
@@ -38,7 +38,6 @@ export default {
   },
   data() {
     return {
-      isShowLoverTask: false,
       isShowContent: false,
     };
   },
@@ -53,18 +52,8 @@ export default {
       }, 1300);
     },
 
-    changeShowLoverTask() {
-      this.isShowLoverTask = !this.isShowLoverTask;
-      this.$refs.tasklist.showList(this.isShowLoverTask);
-    },
-
-    changeShowCalender() {
-      this.$refs.calender.changeShowCalender();
-      this.$refs.tasklist.changeShowMini(this.$refs.calender.isShow);
-    },
-
-    showTip(tipInfo) {
-      this.$refs.tipisland.showTip(tipInfo);
+    changeShowLoverTask(isShowLoverTask) {
+      this.$refs.tasklist.showList(isShowLoverTask);
     },
 
     resetClickItem() {
@@ -73,6 +62,23 @@ export default {
 
     refreshList() {
       this.$refs.tasklist.refreshList();
+    },
+
+    showList(showLoverTask, currentDate) {
+      this.$refs.tasklist.showList(showLoverTask, currentDate);
+    },
+
+    changeShowCalender() {
+      this.$refs.calender.changeShowCalender();
+      this.$refs.tasklist.changeShowMini(this.$refs.calender.isShow);
+    },
+
+    setCalenderShowLover(isShow) {
+      this.$refs.calender.setCalenderShowLover(isShow);
+    },
+
+    showTip(tipInfo) {
+      this.$refs.tipisland.showTip(tipInfo);
     },
 
     changePasswordsOverlay() {

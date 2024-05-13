@@ -1,6 +1,7 @@
 <template>
   <!--任务列表-->
-  <transition-group name="list" tag="div" class="task-list" :class="{'task-list-mini': isShowMini === true}" @click.stop="">
+  <transition-group name="list" tag="div" class="task-list" :class="{ 'task-list-mini': isShowMini === true }"
+    @click.stop="">
     <!--任务列表-->
     <div v-for="(item, index) in showTaskList" :key="item.id" class="task-item"
       :class="{ 'task-item-current': item.isCurrentTask, 'task-item-finished': item.finish_time, 'task-item-lover': item.isLoverTask }"
@@ -87,7 +88,7 @@ export default {
         // 超时未完成的任务做标志
         taskList.forEach(item => { if (new Date(item.deadline).getTime() - currentTime.getTime() < 0) item.isOverTime = true });
         // 正确显示时间
-        taskList.forEach(item => { item.deadline = this.getFormatTime(new Date(item.deadline)) });
+        taskList.forEach(item => { item.showDeadline = this.getFormatTime(new Date(item.deadline)) });
         // 返回列表
         return taskList;
       } catch (e) {
@@ -95,8 +96,18 @@ export default {
       }
     },
 
-    async showList(showLoverTask = false) {
+    getDateList(tasklist, currentDate) {
+      return tasklist.filter(item => {
+        let itemDate = new Date(item.deadline);
+        return itemDate.getFullYear() === currentDate.getFullYear() 
+        && itemDate.getMonth() === currentDate.getMonth() 
+        && itemDate.getDate() === currentDate.getDate();
+      });
+    },
+
+    async showList(showLoverTask = false, currentDate = new Date()) {
       let showTaskList = showLoverTask === true ? [...this.otherTaskList] : [...this.currentTaskList];
+      showTaskList = this.getDateList(showTaskList, currentDate);
       const delayTime = 200 / this.showTaskList.length;
       while (this.showTaskList.length > 0) {
         this.showTaskList.pop();
@@ -108,9 +119,9 @@ export default {
       }
     },
 
-    async refreshList() {
+    async refreshList(currentDate = new Date()) {
       this.currentTaskList = await this.fetchItems();
-      this.showTaskList = [...this.currentTaskList];
+      this.showTaskList = [...this.getDateList(this.currentTaskList, currentDate)];
     },
 
     handleItemClick(item) {

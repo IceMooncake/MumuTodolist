@@ -3,7 +3,7 @@
         <div class="header-btn" @click="logout()">登出</div>
         <div class="header-btn" @click="changePasswordsOverlay()">修改密码</div>
         <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowLoverTask === false }"
-            @click="changeShowLoverTask(); coldDownShowLoverBtn()" :disabled="disShowLoverBtn">偷窥</button>
+            @click="changeShowLoverBtn(); coldDownShowLoverBtn()" :disabled="disShowLoverBtn">偷窥</button>
         <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowLoverTask === false }"
             @click="changeShowCalender(); coldDownShowCalender()" :disabled="disCalenderBtn">选择日期</button>
     </div>
@@ -13,14 +13,15 @@
 
 export default {
     props: {
-        isShowLoverTask: Boolean,
         logout: Function,
         changePasswordsOverlay: Function,
         changeShowLoverTask: Function,
         changeShowCalender: Function,
+        setCalenderShowLover: Function,
     },
     data() {
         return {
+            isShowLoverTask: false,
             disShowLoverBtn: false,
             disCalenderBtn: false,
         };
@@ -33,6 +34,11 @@ export default {
         coldDownShowCalender() {
             this.disCalenderBtn = true;
             setTimeout(() => { this.disCalenderBtn = false }, 300)
+        },
+        changeShowLoverBtn() {
+            this.isShowLoverTask = !this.isShowLoverTask;
+            this.changeShowLoverTask(this.isShowLoverTask);
+            this.setCalenderShowLover(this.isShowLoverTask);
         }
     }
 }
@@ -72,7 +78,7 @@ export default {
     transition: all 0.3s ease-in-out;
 }
 
-.change-able-btn:disabled {
+.change-able-btn-false {
     background-color: rgba(50, 50, 50, 0.653);
 }
 </style>
