@@ -21,7 +21,7 @@
 
 <script>
 import TaskList from '@/components/tasklist/TaskList.vue';
-import InputBoxOverlay from '@/components/overlays/InputBox.vue';
+import InputBoxOverlay from '@/components/overlays/inputBox/InputBox.vue';
 import ChangePasswordOverlay from '@/components/overlays/ChangePassword.vue';
 import HeaderBar from '@/components/HeaderBar.vue';
 import TipIsland from '@/components/TipIsland.vue';

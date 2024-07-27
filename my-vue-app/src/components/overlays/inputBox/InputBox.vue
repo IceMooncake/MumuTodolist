@@ -1,8 +1,9 @@
 <template>
-    <div class="input-box-overlay" :class="{ 'input-box-overlay-hidden': isShowInputOverlay === false }">
-        <div class="input-box" :class="{ 'input-box-hidden': isShowInputOverlay === false }">
+    <div class="input-box-overlay" :class="{ 'input-box-overlay-hidden': isShowInputOverlay === false }" @click="closeInputOverlay()">
+        <div class="input-box" :class="{ 'input-box-hidden': isShowInputOverlay === false }" @click.stop="">
             <div class="input-box-list">
                 <p class="input-box-title">{{ overlayTitle }}</p>
+                <ToggleButton ref="togglebutton" @click="getAddTaskType"></ToggleButton>
                 <div class="input-box-item"><input type="text" v-model="inputForm.taskName" maxlength="100"
                         class="input-border" placeholder="*TODO事项名称*">
                 </div>
@@ -11,11 +12,11 @@
                         class="input-border input-border-taskdetail" placeholder="TODO的详细补充内容">
                     </textarea>
                 </div>
-                <div class="input-box-item">
-                    <input type="date" v-model="inputForm.taskDate" class="input-border input-border-time">
-                </div>
-                <div class="input-box-item">
-                    <input type="time" v-model="inputForm.taskTime" class="input-border input-border-time">
+                <div class="input-box-item" v-show="getAddTaskType() !== 2">
+                    <div class="one-line-time-box">
+                        <input type="date" v-model="inputForm.taskDate" class="input-border input-border-date">
+                        <input type="time" v-model="inputForm.taskTime" class="input-border input-border-time">
+                    </div>
                 </div>
                 <button class="input-commit-button" @click="closeInputOverlay()">取消</button>
                 <button class="input-commit-button" @click="addTask()" v-show="overlayTitle === '添加代办'">确认</button>
@@ -26,9 +27,14 @@
 </template>
 
 <script>
+import ToggleButton from '@/components/overlays/inputBox/ToggleButton.vue';
 import axios from 'axios';
 const apiUrl = process.env.VUE_APP_API_URL;
 export default {
+    components: {
+        ToggleButton,
+    },
+
     data() {
         return {
             isShowInputOverlay: false,
@@ -42,6 +48,10 @@ export default {
         showList: Function,
     },
     methods: {
+        getAddTaskType() {
+            if(this.$refs.togglebutton) return this.$refs.togglebutton.taskType;
+            return 1;
+        },
         checkFormEmpty() {
             if (!this.inputForm.taskName) this.showTip('请输入代办名称');
             else if (!this.inputForm.taskDate) this.showTip('请选择日期');
@@ -186,7 +196,8 @@ export default {
 
 .input-box-title {
     width: 100%;
-    margin: 20px;
+    margin-top: 10px;
+    margin-bottom: 0px;
     text-align: center;
     font-weight: bold;
     font-size: 22px;
@@ -201,7 +212,7 @@ export default {
     justify-content: center;
     align-items: center;
     width: 100%;
-    
+
 }
 
 .input-item-title {
@@ -232,15 +243,30 @@ export default {
     height: 100px;
 }
 
+.one-line-time-box {
+    width: 73%;
+    display: flex;
+    flex-direction: row;
+    padding: 0px;
+}
+
+.input-border-date {
+    width: 50%;
+    margin-left: 0px;
+    margin-right: 5px;
+}
+
 .input-border-time {
-    width: 70%;
+    width: 50%;
+    margin-left: 5px;
+    margin-right: 0px;
 }
 
 .input-commit-button {
     padding: 8px 25px;
     width: 35%;
-    margin-left: 10px;
-    margin-right: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
     margin-bottom: 20px;
     white-space: nowrap;
     border: none;

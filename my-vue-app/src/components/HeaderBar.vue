@@ -1,7 +1,7 @@
 <template>
     <div class="header-bar">
         <div class="header-btn" @click="logout()">登出</div>
-        <div class="header-btn" @click="changePasswordsOverlay()">修改密码</div>
+        <div class="header-btn" @click="changePasswordsOverlay()">改密</div>
         <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowLoverTask === false }"
             @click="changeShowLoverBtn(); coldDownShowLoverBtn()" :disabled="disShowLoverBtn">偷窥</button>
         <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowCalender === false }"
