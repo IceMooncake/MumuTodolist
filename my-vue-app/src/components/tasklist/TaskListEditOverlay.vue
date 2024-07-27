@@ -43,10 +43,10 @@ export default {
     props: {
         isHidden: Boolean,
         item: Object,
-        getFormatTime: Function,
+        formatTime: Function,
         showOverlayToUpdate: Function,
         showTip: Function,
-        refreshList: Function,
+        showList: Function,
     },
 
     methods: {
@@ -54,7 +54,7 @@ export default {
             try {
                 await axios.delete(`${apiUrl}/api/deleteTask/${taskId}`);
                 this.showTip('删除成功');
-                this.refreshList()
+                this.showList(true, false)
             } catch (e) {
                 this.showTip('失败了www再试一下吧');
             }
@@ -64,8 +64,8 @@ export default {
             try {
                 await axios.post(`${apiUrl}/api/setCurrentTask`, { taskId: taskId, userId: this.currentUserId });
                 this.showTip('设置成功');
-                if (taskId) this.refreshList();
-                else this.refreshList();
+                if (taskId) this.showList(true, false);
+                else this.showList(true, false);
             } catch (e) {
                 this.showTip('失败了www再试一下吧');
             }
@@ -76,12 +76,12 @@ export default {
                 if (isDeComplete) {
                     await axios.post(`${apiUrl}/api/completTask`, { taskId: taskId, finishTime: null });
                     this.showTip('撤销成功');
-                    this.refreshList();
+                    this.showList(true, false);
                 }
                 else {
-                    await axios.post(`${apiUrl}/api/completTask`, { taskId: taskId, finishTime: this.getFormatTime(new Date()) });
+                    await axios.post(`${apiUrl}/api/completTask`, { taskId: taskId, finishTime: this.formatTime(new Date()) });
                     this.showTip('完成任务啦，夸夸！');
-                    this.refreshList(this.item, 5);
+                    this.showList(true, false);
                 }
 
             } catch (e) {

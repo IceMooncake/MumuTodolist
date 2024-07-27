@@ -3,20 +3,19 @@
         <div class="input-box" :class="{ 'input-box-hidden': isShowInputOverlay === false }">
             <div class="input-box-list">
                 <p class="input-box-title">{{ overlayTitle }}</p>
-                <span class="input-item-name">名称</span>
                 <div class="input-box-item"><input type="text" v-model="inputForm.taskName" maxlength="100"
-                        class="input-text-border">
+                        class="input-border" placeholder="*TODO事项名称*">
                 </div>
-                <span class="input-item-name">描述</span>
                 <div class="input-box-item">
                     <textarea style="resize: vertical;" v-model="inputForm.taskDetail" maxlength="1000"
-                        class="input-text-border input-item-taskdetail" >sssssss
+                        class="input-border input-border-taskdetail" placeholder="TODO的详细补充内容">
                     </textarea>
                 </div>
-                <span class="input-item-name">日期及时间</span>
-                <div class="input-box-item"><input type="date" v-model="inputForm.taskDate" class="input-text-border">
+                <div class="input-box-item">
+                    <input type="date" v-model="inputForm.taskDate" class="input-border input-border-time">
                 </div>
-                <div class="input-box-item"><input type="time" v-model="inputForm.taskTime" class="input-text-border">
+                <div class="input-box-item">
+                    <input type="time" v-model="inputForm.taskTime" class="input-border input-border-time">
                 </div>
                 <button class="input-commit-button" @click="closeInputOverlay()">取消</button>
                 <button class="input-commit-button" @click="addTask()" v-show="overlayTitle === '添加代办'">确认</button>
@@ -40,7 +39,7 @@ export default {
     },
     props: {
         showTip: Function,
-        refreshList: Function,
+        showList: Function,
     },
     methods: {
         checkFormEmpty() {
@@ -80,7 +79,7 @@ export default {
                 try {
                     await axios.post(`${apiUrl}/api/addTask`, item);
                     this.showTip('添加成功');
-                    this.refreshList();
+                    this.showList(true, false);
                     this.closeInputOverlay();
                 } catch (e) {
                     this.showTip('失败了www再试一下吧');
@@ -101,7 +100,7 @@ export default {
                 try {
                     await axios.put(`${apiUrl}/api/updateTask`, item);
                     this.showTip('修改成功');
-                    this.refreshList();
+                    this.showList(true, false);
                 } catch (e) {
                     this.showTip('失败了www再试一下吧');
                 }
@@ -112,7 +111,8 @@ export default {
             this.setFormEmpty();
             const currentTime = new Date();
             if (!this.inputForm.taskDate) this.inputForm.taskDate = this.getStringDate(currentTime);
-            if (!this.inputForm.taskTime) this.inputForm.taskTime = this.getStringTime(currentTime);
+            // 默认deadline是当天结束时间
+            if (!this.inputForm.taskTime) this.inputForm.taskTime = this.getStringTime(new Date('2005-01-05 23:59:59'));
             this.isShowInputOverlay = true;
             this.overlayTitle = '添加代办';
         },
@@ -204,7 +204,7 @@ export default {
     
 }
 
-.input-item-name {
+.input-item-title {
     width: 100%;
     display: block;
     text-align: center;
@@ -212,11 +212,7 @@ export default {
     font-weight: bold;
 }
 
-.input-item-taskdetail {
-    height: 100px;
-}
-
-.input-text-border {
+.input-border {
     padding: 5px;
     border: 2px solid #525252;
     border-radius: 10px;
@@ -228,13 +224,21 @@ export default {
     display: inline-block;
 }
 
-.input-text-border:focus {
+.input-border:focus {
     border-color: #d4146eb5;
+}
+
+.input-border-taskdetail {
+    height: 100px;
+}
+
+.input-border-time {
+    width: 70%;
 }
 
 .input-commit-button {
     padding: 8px 25px;
-    width: 40%;
+    width: 35%;
     margin-left: 10px;
     margin-right: 10px;
     margin-bottom: 20px;

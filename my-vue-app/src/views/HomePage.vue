@@ -1,17 +1,17 @@
 <template>
   <div class="container" :class="{ 'show-content': isShowContent }" @click="resetClickItem()">
     <!--头部导航栏-->
-    <HeaderBar :changeShowLoverTask="changeShowLoverTask"
-      :changePasswordsOverlay="changePasswordsOverlay" :logout="logout" :changeShowCalender="changeShowCalender" :setCalenderShowLover="setCalenderShowLover"/>
+    <HeaderBar :changeShowLoverTask="changeShowLoverTask" :changePasswordsOverlay="changePasswordsOverlay"
+      :logout="logout" :changeShowCalender="changeShowCalender" />
     <!--日历-->
-    <TopCalender ref="calender" :showList="showList"/>
+    <TopCalender ref="calender" @sendDate="changeListDate" />
     <!--任务列表-->
-    <TaskList ref="tasklist" :isShowLoverTask="isShowLoverTask" :showTip="showTip"
+    <TaskList ref="tasklist" :showTip="showTip"
       :showOverlayToUpdate="showOverlayToUpdate" />
     <!--固定的一个添加任务按钮-->
     <div class="add-button" @click="showOverlayToAdd()">+</div>
     <!--输入框的遮罩层，平时隐藏在页面底部-->
-    <InputBoxOverlay ref="inputbox" :showTip="showTip" :refreshList="refreshList" />
+    <InputBoxOverlay ref="inputbox" :showTip="showTip" :showList="showList" />
     <!--显示提示信息的上方小悬浮窗-->
     <TipIsland ref="tipisland" />
     <!--显示修改密码-->
@@ -36,6 +36,7 @@ export default {
     TipIsland,
     TopCalender,
   },
+
   data() {
     return {
       isShowContent: false,
@@ -52,29 +53,30 @@ export default {
       }, 1300);
     },
 
-    changeShowLoverTask(isShowLoverTask) {
-      this.$refs.tasklist.showList(isShowLoverTask);
+    changeShowLoverTask() {
+      this.$refs.tasklist.changeShowLoverTask();
+      this.$refs.tasklist.showList(false, true);
     },
 
     resetClickItem() {
       this.$refs.tasklist.handleItemClick({ id: null });
     },
 
-    refreshList() {
-      this.$refs.tasklist.refreshList();
+    showList(isRefetch, showAnimation) {
+      this.$refs.tasklist.showList(isRefetch, showAnimation);
     },
 
-    showList(showLoverTask, currentDate) {
-      this.$refs.tasklist.showList(showLoverTask, currentDate);
+    // 修改列表模块中的日期并刷新列表
+    changeListDate(date) {
+      this.$refs.tasklist.currentDate = date;
+      this.$refs.tasklist.showList(false, false)
     },
 
     changeShowCalender() {
+      // 展示或收起日历
       this.$refs.calender.changeShowCalender();
+      // 缩小或还原列表长度
       this.$refs.tasklist.changeShowMini(this.$refs.calender.isShow);
-    },
-
-    setCalenderShowLover(isShow) {
-      this.$refs.calender.setCalenderShowLover(isShow);
     },
 
     showTip(tipInfo) {

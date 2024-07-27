@@ -5,12 +5,11 @@
     <!--任务列表-->
     <div v-for="(item, index) in showTaskList" :key="item.id" class="task-item"
       :class="{ 'task-item-current': item.isCurrentTask, 'task-item-finished': item.finish_time, 'task-item-lover': item.isLoverTask }"
-      @mousedown="resetItemMouseDown(item)" @click="handleItemClick(item, index)"
-      v-show="isShowLoverTask || !item.isLoverTask">
+      @click="handleItemClick(item, index)" v-show="isShowLoverTask || !item.isLoverTask">
       <!--每个任务的按钮遮罩层-->
       <TaskListEditOverlay :item="item" :showOverlayToUpdate="showOverlayToUpdate" :showTip="showTip"
-        :getFormatTime="getFormatTime" :refreshList="refreshList"
-        :isHidden="clickItem.id !== item.id || item.user_id != currentUserId" />
+        :formatTime="formatTime" :showList="showList"
+        :isHidden="clickItem.id !== item.id || item.user_id != selfUserId" />
       <!--每个任务的信息块-->
       <TaskListItem :item="item" :isHidden="clickItem.id === item.id" />
     </div>
@@ -33,26 +32,34 @@ export default {
   },
 
   props: {
-    isShowLoverTask: Boolean,
     showTip: Function,
-    showOverlayToUpdate: Function,
+    showOverlayToUpdate: Function
   },
 
   data() {
     return {
+      isShowLoverTask: false,
       showTaskList: [],
-      currentTaskList: [],
-      otherTaskList: [],
-      currentUserId: this.$route.params.id,
-      isBingMu: this.$route.params.id == 1 || this.$route.params.id == 2,
-      currentTaskId: null,
+      selfTaskList: [],
+      loverTaskList: [],
+      selfCurrentTaskId: null,
+      loverCurrentTaskId: null,
+      selfUserId: this.$route.params.id,
+      loverUserId: this.$route.params.id == 1 ? 2 : 1,
       clickItem: { id: null },
-      isShowMini: false,
+      currentDate: new Date(),
+      isShowMini: false, // 控制列表以短列表显示（给日历留位置）
     };
   },
 
   methods: {
-    getFormatTime(FullDate) {
+    // 获取当前是用户列表还是情侣列表
+    getCurrentRoleList() {
+      return this.isShowLoverTask ? [...this.loverTaskList] : [...this.selfTaskList];
+    },
+
+    // 格式化时间
+    formatTime(FullDate) {
       const year = String(FullDate.getFullYear()).padStart(4, '0');
       const month = String(FullDate.getMonth() + 1).padStart(2, '0');
       const day = String(FullDate.getDate()).padStart(2, '0');
@@ -61,75 +68,88 @@ export default {
       return year + '-' + month + '-' + day + ' ' + hour + ':' + minute;
     },
 
-    async fetchItems(isShowLoverTask = false) {
-      let userId = this.currentUserId;
-      if (isShowLoverTask === true) userId = this.currentUserId == 1 ? 2 : 1;
+    // 格式化列表(排序、格式化时间、添加任务状态标签等)
+    formatTaskList(taskList) {
+      // 按照时间排序
+      const currentTime = new Date();
+      taskList = taskList.slice().sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+      // 当前正在做的任务做标志并置顶
+      const currentTask = taskList.find(item => item.id === this.loverCurrentTaskId || item.id === this.selfCurrentTaskId)
+      if (currentTask) {
+        currentTask.isCurrentTask = true;
+        taskList.splice(taskList.indexOf(currentTask), 1);
+        taskList.unshift(currentTask);
+      }
+      // 未完成的任务列表
+      let unFinishedTasks = taskList.filter(item => !item.finish_time);
+      // 已完成的任务列表
+      let finishedTasks = taskList.filter(item => item.finish_time);
+      // 合并两个列表
+      taskList = [...unFinishedTasks, ...finishedTasks];
+      // 超时未完成的任务做标志
+      taskList.forEach(item => { if (new Date(item.deadline).getTime() - currentTime.getTime() < 0) item.isOverTime = true });
+      // 正确显示时间
+      taskList.forEach(item => { item.deadline_show = this.formatTime(new Date(item.deadline)) });
+      // 返回列表
+      return taskList;
+    },
+
+    // 从数据库抓取列表加载到组件中的值
+    async fetchItems() {
       try {
-        let response = await axios.get(`${apiUrl}/api/getTasks?userId=${userId}`);
-        let taskList = response.data.tasks;
-        // 按照时间排序
-        const currentTime = new Date();
-        taskList = taskList.slice().sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
-        // 当前正在做的任务做标志并置顶
-        response = await axios.get(`${apiUrl}/api/getCurrentTaskId?userId=${userId}`);
-        this.currentTaskId = response.data.taskId;
-        const currentTask = taskList.find(item => item.id === this.currentTaskId);
-        if (currentTask) {
-          currentTask.isCurrentTask = true;
-          taskList.splice(taskList.indexOf(currentTask), 1);
-          taskList.unshift(currentTask);
-        }
-        // 未完成的任务列表
-        let unFinishedTasks = taskList.filter(item => !item.finish_time);
-        // 已完成的任务列表
-        let finishedTasks = taskList.filter(item => item.finish_time);
-        // 合并两个列表
-        taskList = [...unFinishedTasks, ...finishedTasks];
-        // 超时未完成的任务做标志
-        taskList.forEach(item => { if (new Date(item.deadline).getTime() - currentTime.getTime() < 0) item.isOverTime = true });
-        // 正确显示时间
-        taskList.forEach(item => { item.showDeadline = this.getFormatTime(new Date(item.deadline)) });
-        // 返回列表
-        return taskList;
+        let response = await axios.get(`${apiUrl}/api/getCurrentTaskId?userId=${this.selfUserId}`);
+        this.selfCurrentTaskId = response.data.taskId;
+        response = await axios.get(`${apiUrl}/api/getTasks?userId=${this.selfUserId}`);
+        this.selfTaskList = this.formatTaskList(response.data.tasks);
+        response = await axios.get(`${apiUrl}/api/getCurrentTaskId?userId=${this.loverUserId}`);
+        this.loverCurrentTaskId = response.data.taskId;
+        response = await axios.get(`${apiUrl}/api/getTasks?userId=${this.loverUserId}`);
+        this.loverTaskList = this.formatTaskList(response.data.tasks);
       } catch (e) {
         console.error(e);
       }
     },
 
-    getDateList(tasklist, currentDate) {
+    // 获取当前选中的时间的列表
+    getDateList(tasklist) {
       return tasklist.filter(item => {
         let itemDate = new Date(item.deadline);
-        return itemDate.getFullYear() === currentDate.getFullYear() 
-        && itemDate.getMonth() === currentDate.getMonth() 
-        && itemDate.getDate() === currentDate.getDate();
+        return itemDate.getFullYear() === this.currentDate.getFullYear()
+          && itemDate.getMonth() === this.currentDate.getMonth()
+          && itemDate.getDate() === this.currentDate.getDate()
+          || item.show_only_theday === 0;
       });
     },
 
-    async showList(showLoverTask = false, currentDate = new Date()) {
-      let showTaskList = showLoverTask === true ? [...this.otherTaskList] : [...this.currentTaskList];
-      showTaskList = this.getDateList(showTaskList, currentDate);
-      const delayTime = 200 / this.showTaskList.length;
-      while (this.showTaskList.length > 0) {
-        this.showTaskList.pop();
-        await delay(delayTime);
-      }
-      for (const item of showTaskList) {
-        this.showTaskList.push(item);
-        await delay(delayTime);
+    // 展示列表的退出和进入(是否重新获取列表，是否展示进出动画)
+    async showList(isRefetch = false, showAnimation = false) {
+      if (isRefetch) await this.fetchItems();
+      let showTaskList = this.getCurrentRoleList();
+      showTaskList = this.getDateList(showTaskList);
+      // 展示动画
+      if (showAnimation) {
+        const delayTime = 200 / this.showTaskList.length;
+        while (this.showTaskList.length > 0) {
+          this.showTaskList.pop();
+          await delay(delayTime);
+        }
+        for (const item of showTaskList) {
+          this.showTaskList.push(item);
+          await delay(delayTime);
+        }
+      } else {
+        this.showTaskList = showTaskList;
       }
     },
 
-    async refreshList(currentDate = new Date()) {
-      this.currentTaskList = await this.fetchItems();
-      this.showTaskList = [...this.getDateList(this.currentTaskList, currentDate)];
-    },
-
+    // 判断点击了哪个item，重复点击设为null
     handleItemClick(item) {
       this.clickItem = (this.clickItem.id === item.id) ? { id: null } : item;
     },
 
-    resetItemMouseDown(item) {
-      this.clickItem = (this.clickItem === item) ? item : { id: null };
+
+    changeShowLoverTask() {
+      this.isShowLoverTask = !this.isShowLoverTask;
     },
 
     changeShowMini(isShowMini) {
@@ -139,9 +159,7 @@ export default {
   },
 
   async mounted() {
-    this.currentTaskList = await this.fetchItems();
-    if (this.isBingMu) this.otherTaskList = await this.fetchItems(true);
-    this.showList();
+    this.showList(true, true);
   },
 
 };

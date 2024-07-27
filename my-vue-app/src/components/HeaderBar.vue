@@ -4,8 +4,8 @@
         <div class="header-btn" @click="changePasswordsOverlay()">修改密码</div>
         <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowLoverTask === false }"
             @click="changeShowLoverBtn(); coldDownShowLoverBtn()" :disabled="disShowLoverBtn">偷窥</button>
-        <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowLoverTask === false }"
-            @click="changeShowCalender(); coldDownShowCalender()" :disabled="disCalenderBtn">选择日期</button>
+        <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowCalender === false }"
+            @click="changeShowCalenderBtn(); coldDownShowCalender()" :disabled="disCalenderBtn">日历</button>
     </div>
 </template>
 
@@ -17,11 +17,11 @@ export default {
         changePasswordsOverlay: Function,
         changeShowLoverTask: Function,
         changeShowCalender: Function,
-        setCalenderShowLover: Function,
     },
     data() {
         return {
             isShowLoverTask: false,
+            isShowCalender: false,
             disShowLoverBtn: false,
             disCalenderBtn: false,
         };
@@ -35,10 +35,13 @@ export default {
             this.disCalenderBtn = true;
             setTimeout(() => { this.disCalenderBtn = false }, 300)
         },
+        changeShowCalenderBtn() {
+            this.isShowCalender = !this.isShowCalender;
+            this.changeShowCalender();
+        },
         changeShowLoverBtn() {
             this.isShowLoverTask = !this.isShowLoverTask;
-            this.changeShowLoverTask(this.isShowLoverTask);
-            this.setCalenderShowLover(this.isShowLoverTask);
+            this.changeShowLoverTask();
         }
     }
 }

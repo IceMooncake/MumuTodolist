@@ -7,12 +7,12 @@
     <!-- 任务时间 -->
     <div class="task-time-container">
       <span class="task-time-text" :class="{ 'task-time-overtime': item.isOverTime && !item.finish_time }">
-        {{ item.showDeadline }}
+        {{ item.deadline_show }}
       </span>
     </div>
   </div>
 </template>
-
+ 
 <script>
 export default {
   props: {
