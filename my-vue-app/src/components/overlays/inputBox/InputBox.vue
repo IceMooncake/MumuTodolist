@@ -1,9 +1,10 @@
 <template>
-    <div class="input-box-overlay" :class="{ 'input-box-overlay-hidden': isShowInputOverlay === false }" @click="closeInputOverlay()">
+    <div class="input-box-overlay" :class="{ 'input-box-overlay-hidden': isShowInputOverlay === false }"
+        @click="closeInputOverlay()">
         <div class="input-box" :class="{ 'input-box-hidden': isShowInputOverlay === false }" @click.stop="">
             <div class="input-box-list">
-                <p class="input-box-title">{{ overlayTitle }}</p>
-                <ToggleButton ref="togglebutton" @click="getAddTaskType"></ToggleButton>
+                <p class="input-box-title">{{ getOverlayTitle }}</p>
+                <ToggleButton ref="togglebutton" v-show="overlayType === 'add'"></ToggleButton>
                 <div class="input-box-item"><input type="text" v-model="inputForm.taskName" maxlength="100"
                         class="input-border" placeholder="*TODO事项名称*">
                 </div>
@@ -12,15 +13,19 @@
                         class="input-border input-border-taskdetail" placeholder="TODO的详细补充内容">
                     </textarea>
                 </div>
-                <div class="input-box-item" v-show="getAddTaskType() !== 2">
-                    <div class="one-line-time-box">
-                        <input type="date" v-model="inputForm.taskDate" class="input-border input-border-date">
-                        <input type="time" v-model="inputForm.taskTime" class="input-border input-border-time">
-                    </div>
+                <div class="input-box-item">
+                    <input type="date" v-model="inputForm.taskDate" class="input-border input-border-deadline-date">
+                    <input type="time" v-model="inputForm.taskTime" class="input-border input-border-deadline-time">
+                </div>
+                <div class="input-box-item" :class="{ 'input-box-item-hidden': getAddTaskType() != 2 }">
+                    <span>每隔</span>
+                    <input type="number" v-model="dayInterval" @input="validateDay()" class="input-border input-border-interval-date" />
+                    <span>天 | 在</span>
+                    <input type="time" v-model="timeToRepeat" class="input-border input-border-interval-time">
+                    <span>添加</span>
                 </div>
                 <button class="input-commit-button" @click="closeInputOverlay()">取消</button>
-                <button class="input-commit-button" @click="addTask()" v-show="overlayTitle === '添加代办'">确认</button>
-                <button class="input-commit-button" @click="updateTask()" v-show="overlayTitle === '修改代办'">确认</button>
+                <button class="input-commit-button" @click="buttonCommit()">确认</button>
             </div>
         </div>
     </div>
@@ -37,21 +42,45 @@ export default {
 
     data() {
         return {
+            hours: Array.from({ length: 24 }, (v, k) => k),
             isShowInputOverlay: false,
-            overlayTitle: '',
+            overlayType: 'add',
             currentUserId: this.$route.params.id,
+            dayInterval: 1,
+            timeToRepeat: '',
             inputForm: { taskId: '', taskName: '', taskDetail: '', taskDate: '', taskTime: '' },
         }
     },
+
     props: {
         showTip: Function,
         showList: Function,
     },
+
+    computed: {
+        getOverlayTitle() {
+            switch (this.overlayType) {
+                case 'add': return '添加任务';
+                case 'edit': return '编辑任务';
+            }
+            return 'add';
+        },
+    },
+
     methods: {
         getAddTaskType() {
-            if(this.$refs.togglebutton) return this.$refs.togglebutton.taskType;
+            if (this.$refs.togglebutton) return this.$refs.togglebutton.taskType;
             return 1;
         },
+
+        validateDay() {
+            if (this.dayInterval < 1) {
+                this.dayInterval = 1;
+            } else if (this.dayInterval > 366) {
+                this.dayInterval = 366;
+            }
+        },
+
         checkFormEmpty() {
             if (!this.inputForm.taskName) this.showTip('请输入代办名称');
             else if (!this.inputForm.taskDate) this.showTip('请选择日期');
@@ -77,6 +106,7 @@ export default {
             return hour + ':' + minute;
         },
 
+        // TODO: 设置三种任务的添加方式，日历选中后退出，长期任务完成后仅在当天显示
         async addTask() {
             if (!this.checkFormEmpty()) {
                 const inputForm = this.inputForm;
@@ -111,9 +141,18 @@ export default {
                     await axios.put(`${apiUrl}/api/updateTask`, item);
                     this.showTip('修改成功');
                     this.showList(true, false);
+                    this.closeInputOverlay();
                 } catch (e) {
                     this.showTip('失败了www再试一下吧');
                 }
+            }
+        },
+
+        buttonCommit() {
+            switch (this.overlayType) {
+                case 'add': this.addTask(); break;
+                case 'edit': this.updateTask(); break;
+                default: break;
             }
         },
 
@@ -121,10 +160,10 @@ export default {
             this.setFormEmpty();
             const currentTime = new Date();
             if (!this.inputForm.taskDate) this.inputForm.taskDate = this.getStringDate(currentTime);
-            // 默认deadline是当天结束时间
             if (!this.inputForm.taskTime) this.inputForm.taskTime = this.getStringTime(new Date('2005-01-05 23:59:59'));
+            if (!this.timeToRepeat) this.timeToRepeat = this.getStringTime(new Date('2005-01-05 02:00:00'));
             this.isShowInputOverlay = true;
-            this.overlayTitle = '添加代办';
+            this.overlayType = 'add';
         },
 
         showOverlayToUpdate(item) {
@@ -135,7 +174,7 @@ export default {
             this.inputForm.taskDate = this.getStringDate(currentTime);
             this.inputForm.taskTime = this.getStringTime(currentTime);
             this.isShowInputOverlay = true;
-            this.overlayTitle = '修改代办';
+            this.overlayType = 'edit';
         },
 
         closeInputOverlay() {
@@ -146,6 +185,7 @@ export default {
 </script>
 
 <style scoped>
+
 .input-box-overlay {
     position: fixed;
     display: flex;
@@ -195,24 +235,31 @@ export default {
 }
 
 .input-box-title {
-    width: 100%;
+    width: 70%;
     margin-top: 10px;
-    margin-bottom: 0px;
+    margin-bottom: 10px;
     text-align: center;
     font-weight: bold;
     font-size: 22px;
     color: #030d1f;
-    background-color: rgba(227, 160, 127, 0.701);
+    background-color: rgba(193, 146, 224, 0.406);
     box-shadow: 0 0 20px rgb(255, 255, 255);
     border-radius: 20px;
 }
 
 .input-box-item {
+    align-items: center; 
     display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
+    white-space: nowrap;
+    margin-bottom: 5px;
+    width: 70%;
+    height: 10%; /* 此height无效果，目的是让动画退出时高度延迟变化 */
+    transition: all 0.3s ease-in-out;
+}
 
+.input-box-item-hidden {
+    height: 0px;
+    opacity: 0;
 }
 
 .input-item-title {
@@ -224,14 +271,14 @@ export default {
 }
 
 .input-border {
+    box-sizing: border-box;
     padding: 5px;
     border: 2px solid #525252;
     border-radius: 10px;
     font-size: 16px;
     outline: none;
     transition: all 0.3s ease-in-out;
-    margin-bottom: 5px;
-    width: 70%;
+    width: 100%;
     display: inline-block;
 }
 
@@ -243,23 +290,29 @@ export default {
     height: 100px;
 }
 
-.one-line-time-box {
-    width: 73%;
-    display: flex;
-    flex-direction: row;
-    padding: 0px;
-}
-
-.input-border-date {
+.input-border-deadline-date {
     width: 50%;
     margin-left: 0px;
     margin-right: 5px;
 }
 
-.input-border-time {
+.input-border-deadline-time {
     width: 50%;
     margin-left: 5px;
     margin-right: 0px;
+}
+
+.input-border-interval-date {
+    text-align: center;
+    margin-left: 3px;
+    margin-right: 3px;
+    width: 12%;
+}
+
+.input-border-interval-time {
+    margin-left: 3px;
+    margin-right: 3px;
+    width: 40%;
 }
 
 .input-commit-button {

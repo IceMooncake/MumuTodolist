@@ -4,20 +4,23 @@
       <div ref="cube" v-if="!loggedIn">
         <div class="input-container" :class="{ 'show-input-container': showContent }">
           <div class="circle-container">
-            <div class="circle" :class="{'circle-mumu': userId === 1, 'circle-bing': userId === 2}" @click="changeUser">{{userId === 1 ? '木' : '饼' }}</div>
+            <div class="circle" :class="{ 'circle-mumu': userId === 1, 'circle-bing': userId === 2 }" @click="changeUser">
+              {{ userId === 1 ? '木' : '饼' }}</div>
           </div>
           <div v-if="errorMessage || (!errorMessage && errorTimer > 0)" class="error-message">{{ errorMessage ||
-    `太快啦，请等待${errorTimer}s` }}</div>
-          <input v-model="password" :type="showPassword ? 'text' : 'password'" placeholder="这里输入密码哦"
-            class="custom-input" @keyup.enter="handleEnter">
-          <span @click="togglePasswordVisibility" class="eye-icon">{{ showPassword ? '👁️' : '🔒' }}</span>
-          <transition name="fade-color">
-            <div>
-              <button :disabled="buttonDisabled" @click="handleSubmit" class="submit-button" ref="submitButton">
-                {{ buttonDisabled ? '请稍候~' : '提交' }}
-              </button>
-            </div>
-          </transition>
+            `太快啦，请等待${errorTimer}s` }}</div>
+          <form @submit.prevent="handleSubmit">
+            <input v-model="password" :type="showPassword ? 'text' : 'password'" placeholder="这里输入密码哦"
+              class="custom-input">
+            <span @click="togglePasswordVisibility" class="eye-icon">{{ showPassword ? '👁️' : '🔒' }}</span>
+            <transition name="fade-color">
+              <div>
+                <button :disabled="buttonDisabled" @click="handleSubmit" class="submit-button" ref="submitButton">
+                  {{ buttonDisabled ? '请稍候~' : '提交' }}
+                </button>
+              </div>
+            </transition>
+          </form>
         </div>
         <a @click="openMarkdown" class="version-button">v {{ version }}</a>
       </div>
@@ -85,13 +88,10 @@ export default {
     changeUser() {
       this.userId = this.userId === 1 ? 2 : 1;
     },
-    handleEnter(event) {
-      if (event.keyCode === 13) this.$refs.submitButton.click(); //回车提交
-    },
     async handleSubmit() {
       this.buttonDisabled = true;
       try {
-        const response = await axios.post(`${apiUrl}/api/login`, { userId:this.userId, pwd: this.password });
+        const response = await axios.post(`${apiUrl}/api/login`, { userId: this.userId, pwd: this.password });
         if (response.status === 200) {
           this.loggedIn = true;
           localStorage.setItem('token', response.data.token);
@@ -119,7 +119,7 @@ export default {
 <style scoped>
 * {
   user-select: none;
-  -webkit-tap-highlight-color: rgba(0,0,0,0); 
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 .input-container {
@@ -139,7 +139,8 @@ export default {
 
 .circle {
   position: absolute;
-  top: -50px; /* 调整圆形位置 */
+  top: -50px;
+  /* 调整圆形位置 */
   left: 50%;
   transform: translateX(-50%);
   width: 40px;

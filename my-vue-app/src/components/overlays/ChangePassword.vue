@@ -1,13 +1,17 @@
 <template>
     <!--显示修改密码-->
     <div class="change-password-overlay" :class="{ 'change-password-overlay-hidden': isShowChangePassword === false }">
-        <div class="change-password-form">
-            <p>原密码</p><input type="password" class="input-text-border" v-model="changePasswordForm.oldPassword">
-            <p>新密码</p><input type="password" class="input-text-border" v-model="changePasswordForm.newPassword">
-            <p>重复新密码</p><input type="password" class="input-text-border" v-model="changePasswordForm.repeatPassword">
-            <button class="input-commit-button" @click="changePassword()">提交</button>
-            <button class="input-commit-button" @click="changePasswordsOverlay()">取消</button>
-        </div>
+        <form class="change-password-form" @submit.prevent="changePassword()">
+            <input type="text" name="username" autocomplete="username" style="display:none">
+            <label for="oldPassword">原密码:</label>
+            <input type="password" class="input-text-border" v-model="changePasswordForm.oldPassword" autocomplete="old-password">
+            <label for="newPassword">新密码:</label>
+            <input type="password" class="input-text-border" v-model="changePasswordForm.newPassword" autocomplete="new-password">
+            <label for="repeatNewPassword">重复新密码:</label>
+            <input type="password" class="input-text-border" v-model="changePasswordForm.repeatPassword" autocomplete="repeat-password">
+            <button type="submit" class="input-commit-button" @click="changePassword()">提交</button>
+            <button class="input-commit-button" @click.prevent="changePasswordsOverlay()">取消</button>
+        </form>
     </div>
 </template>
 
@@ -93,7 +97,7 @@ export default {
 }
 
 .change-password-form * {
-    flex-basis: 80%;
+    flex-basis: 60%;
 }
 
 .input-text-border {
@@ -103,8 +107,7 @@ export default {
     font-size: 16px;
     outline: none;
     transition: all 0.3s ease-in-out;
-    margin-bottom: 5px;
-    width: 70%;
+    margin-bottom: 10px;
     display: inline-block;
 }
 
@@ -114,10 +117,10 @@ export default {
 
 .input-commit-button {
     padding: 8px 25px;
-    width: 40%;
     margin-left: 10px;
     margin-right: 10px;
-    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     white-space: nowrap;
     border: none;
     border-radius: 10px;
