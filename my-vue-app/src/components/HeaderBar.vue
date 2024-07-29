@@ -31,6 +31,10 @@ export default {
             this.disShowLoverBtn = true;
             setTimeout(() => { this.disShowLoverBtn = false }, 500);
         },
+        changeShowLoverBtn() {
+            this.isShowLoverTask = !this.isShowLoverTask;
+            this.changeShowLoverTask();
+        },
         coldDownShowCalender() {
             this.disCalenderBtn = true;
             setTimeout(() => { this.disCalenderBtn = false }, 300)
@@ -39,10 +43,9 @@ export default {
             this.isShowCalender = !this.isShowCalender;
             this.changeShowCalender();
         },
-        changeShowLoverBtn() {
-            this.isShowLoverTask = !this.isShowLoverTask;
-            this.changeShowLoverTask();
-        }
+        setShowCalenderBtn(states) {
+            this.isShowCalender = states;
+        },
     }
 }
 </script>

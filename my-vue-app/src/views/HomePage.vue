@@ -1,10 +1,10 @@
 <template>
   <div class="container" :class="{ 'show-content': isShowContent }" @click="resetClickItem()">
     <!--头部导航栏-->
-    <HeaderBar :changeShowLoverTask="changeShowLoverTask" :changePasswordsOverlay="changePasswordsOverlay"
+    <HeaderBar ref="headerbar" :changeShowLoverTask="changeShowLoverTask" :changePasswordsOverlay="changePasswordsOverlay"
       :logout="logout" :changeShowCalender="changeShowCalender" />
     <!--日历-->
-    <TopCalender ref="calender" @sendDate="changeListDate" />
+    <TopCalender ref="calender" @sendDate="changeListDate" :changeShowListMini="changeShowListMini" :setShowCalenderBtn="setShowCalenderBtn"/>
     <!--任务列表-->
     <TaskList ref="tasklist" :showTip="showTip"
       :showOverlayToUpdate="showOverlayToUpdate" />
@@ -70,13 +70,19 @@ export default {
     changeListDate(date) {
       this.$refs.tasklist.currentDate = date;
       this.$refs.tasklist.showList(false, false)
+      this.$refs.inputbox.setFromTaskDeadline(date, null);
+    },
+
+    changeShowListMini(isShow) {
+      this.$refs.tasklist.changeShowListMini(isShow);
+    },
+
+    setShowCalenderBtn(states){
+      this.$refs.headerbar.setShowCalenderBtn(states);
     },
 
     changeShowCalender() {
-      // 展示或收起日历
       this.$refs.calender.changeShowCalender();
-      // 缩小或还原列表长度
-      this.$refs.tasklist.changeShowMini(this.$refs.calender.isShow);
     },
 
     showTip(tipInfo) {

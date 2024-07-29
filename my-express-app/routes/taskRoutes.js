@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const executeQuery = require('../utils/executeQuery');
 const ipRequestLimit = require('../middleware/ipRequestLimit');
+const { error400Message, error503Message } = require('../config');
 
 /** 获取任务列表 */
 router.get('/getTasks', ipRequestLimit(1 * 1000, 10), async (req, res) => {
     const query = "SELECT * FROM task_list WHERE user_id = ?";
     const rows = await executeQuery(query, [req.query.userId], 5);
-    if (!rows) return res.status(503).json({ error: '数据库连接出错 \n 多试几次吧www' });
+    if (!rows) return res.status(503).json({ error: error503Message });
     return res.status(200).json({ success: true, tasks: rows, query: req.query });
 });
 
@@ -15,15 +16,24 @@ router.get('/getTasks', ipRequestLimit(1 * 1000, 10), async (req, res) => {
 router.get('/getCurrentTaskId', ipRequestLimit(1 * 1000, 10), async (req, res) => {
     const query = "SELECT * FROM user_data WHERE id = ?";
     const rows = await executeQuery(query, [req.query.userId]);
-    if (!rows || !rows[0]) return res.status(503).json({ error: '数据库连接出错 \n 多试几次吧www' });
+    if (!rows || !rows[0]) return res.status(503).json({ error: error503Message });
     return res.status(200).json({ taskId: rows[0].current_task_id });
 });
 
 /** 增加任务列表 */
 router.post('/addTask', ipRequestLimit(1 * 1000, 10), async (req, res) => {
-    const { user_id, task_name, task_detail, deadline } = req.body;
-    const query = "INSERT INTO task_list (user_id, task_name, task_detail, deadline) VALUES (?, ?, ?, ?)";
-    const rows = await executeQuery(query, [user_id, task_name, task_detail, deadline]);
+    const { task_type, user_id, show_only_theday, task_name, task_detail, deadline, interval_unit, interval_value, next_run, repeat_hour, repeat_minute } = req.body;
+    let rows = null;
+    if (task_type === 'onlyTheday' || task_type === 'longTerm') {
+        const query = "INSERT INTO task_list (user_id, show_only_theday, task_name, task_detail, deadline) VALUES (?, ?, ?, ?, ?)";
+        rows = await executeQuery(query, [user_id, show_only_theday, task_name, task_detail, deadline]);
+    } else if (task_type === 'repeat') {
+        const now = new Date();
+        now.setHours(0,0,0,0);
+        if (now > new Date(next_run)) return res.status(400).json({ error: error400Message + "循环任务日期不可早于今天" });
+        const query = "INSERT INTO repeat_task (user_id, task_name, task_detail, deadline, interval_unit, interval_value, next_run, repeat_hour, repeat_minute) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        rows = await executeQuery(query, [user_id, task_name, task_detail, deadline, interval_unit, interval_value, next_run, repeat_hour, repeat_minute]);
+    }
     if (!rows) return res.status(503).json({ error: error503Message });
     return res.status(200).json({ success: true });
 })

@@ -17,11 +17,18 @@
                     <input type="date" v-model="inputForm.taskDate" class="input-border input-border-deadline-date">
                     <input type="time" v-model="inputForm.taskTime" class="input-border input-border-deadline-time">
                 </div>
-                <div class="input-box-item" :class="{ 'input-box-item-hidden': getAddTaskType() != 2 }">
-                    <span>每隔</span>
-                    <input type="number" v-model="dayInterval" @input="validateDay()" class="input-border input-border-interval-date" />
-                    <span>天 | 在</span>
-                    <input type="time" v-model="timeToRepeat" class="input-border input-border-interval-time">
+                <div class="input-box-item" :class="{ 'input-box-item-hidden': getAddTaskType() != 'repeat' }"
+                    v-show="overlayType === 'add'">
+                    <span>每隔&nbsp;</span>
+                    <input type="number" v-model="inputRepeatForm.intervalValue" @input="validateDay()"
+                        class="input-border input-border-interval-date" />
+                    <span>&nbsp;</span>
+                    <div class="interval-type-box" @click="changeIntervalType()">
+                        <span class='interval-type-text'>{{ getintervalUnitString }}</span>
+                    </div>
+                    <span>&nbsp;|&nbsp;在</span>
+                    <input type="time" v-model="inputRepeatForm.intervalTime"
+                        class="input-border input-border-interval-time">
                     <span>添加</span>
                 </div>
                 <button class="input-commit-button" @click="closeInputOverlay()">取消</button>
@@ -46,8 +53,7 @@ export default {
             isShowInputOverlay: false,
             overlayType: 'add',
             currentUserId: this.$route.params.id,
-            dayInterval: 1,
-            timeToRepeat: '',
+            inputRepeatForm: { intervalUnit: 'days', intervalValue: 1, intervalTime: '' },
             inputForm: { taskId: '', taskName: '', taskDetail: '', taskDate: '', taskTime: '' },
         }
     },
@@ -58,6 +64,15 @@ export default {
     },
 
     computed: {
+        getintervalUnitString() {
+            switch (this.inputRepeatForm.intervalUnit) {
+                case 'days': return '天';
+                case 'weeks': return '周';
+                case 'months': return '月';
+                case 'years': return '年'
+            }
+            return '天';
+        },
         getOverlayTitle() {
             switch (this.overlayType) {
                 case 'add': return '添加任务';
@@ -70,14 +85,14 @@ export default {
     methods: {
         getAddTaskType() {
             if (this.$refs.togglebutton) return this.$refs.togglebutton.taskType;
-            return 1;
+            return 'longTerm';
         },
 
         validateDay() {
-            if (this.dayInterval < 1) {
-                this.dayInterval = 1;
-            } else if (this.dayInterval > 366) {
-                this.dayInterval = 366;
+            if (this.inputRepeatForm.intervalValue < 1) {
+                this.inputRepeatForm.intervalValue = 1;
+            } else if (this.inputRepeatForm.intervalValue > 366) {
+                this.inputRepeatForm.intervalValue = 366;
             }
         },
 
@@ -89,8 +104,8 @@ export default {
             return true;
         },
 
-        setFormEmpty() {
-            this.inputForm = { taskId: '', taskName: '', taskDetail: '', taskDate: '', taskTime: '' };
+        setFormContent(taskId = '', taskName = '', taskDetail = '', taskDate = '', taskTime = '') {
+            this.inputForm = { taskId: taskId, taskName: taskName, taskDetail: taskDetail, taskDate: taskDate, taskTime: taskTime };
         },
 
         getStringDate(FullDate) {
@@ -106,15 +121,27 @@ export default {
             return hour + ':' + minute;
         },
 
-        // TODO: 设置三种任务的添加方式，日历选中后退出，长期任务完成后仅在当天显示
+        // TODO: 设置三种任务的添加方式，长期任务完成后仅在当天显示
         async addTask() {
             if (!this.checkFormEmpty()) {
-                const inputForm = this.inputForm;
                 const item = {
+                    task_type: this.getAddTaskType(),
                     user_id: this.currentUserId,
-                    task_name: inputForm.taskName,
-                    task_detail: inputForm.taskDetail,
-                    deadline: inputForm.taskDate + ' ' + inputForm.taskTime
+                    task_name: this.inputForm.taskName,
+                    task_detail: this.inputForm.taskDetail,
+                    deadline: this.inputForm.taskDate + ' ' + this.inputForm.taskTime
+                };
+                switch (this.getAddTaskType()) {
+                    case 'onlyTheday': item.show_only_theday = 1; break;
+                    case 'longTerm': item.show_long_theday = 0; break;
+                    case 'repeat': {
+                        const chooseDay = new Date(item.deadline);
+                        item.interval_unit = this.inputRepeatForm.intervalUnit;
+                        item.interval_value = this.inputRepeatForm.intervalValue;
+                        item.next_run = this.getStringDate(chooseDay) + ' ' + this.getStringTime(chooseDay);
+                        item.repeat_hour = new Date('2005-01-05 ' + this.inputRepeatForm.intervalTime).getHours();
+                        item.repeat_minute = new Date('2005-01-05 ' + this.inputRepeatForm.intervalTime).getMinutes();
+                    }
                 }
                 try {
                     await axios.post(`${apiUrl}/api/addTask`, item);
@@ -122,7 +149,7 @@ export default {
                     this.showList(true, false);
                     this.closeInputOverlay();
                 } catch (e) {
-                    this.showTip('失败了www再试一下吧');
+                    this.showTip(e.response.data.error);
                 }
             }
         },
@@ -135,7 +162,7 @@ export default {
                     user_id: this.currentUserId,
                     task_name: inputForm.taskName,
                     task_detail: inputForm.taskDetail,
-                    deadline: inputForm.taskDate + ' ' + inputForm.taskTime
+                    deadline: inputForm.taskDate + ' ' + inputForm.taskTime,
                 }
                 try {
                     await axios.put(`${apiUrl}/api/updateTask`, item);
@@ -143,7 +170,7 @@ export default {
                     this.showList(true, false);
                     this.closeInputOverlay();
                 } catch (e) {
-                    this.showTip('失败了www再试一下吧');
+                    this.showTip(e.response.data.error);
                 }
             }
         },
@@ -156,12 +183,25 @@ export default {
             }
         },
 
+        setFromTaskDeadline(date, time) {
+            if (date) this.inputForm.taskDate = this.getStringDate(date);
+            if (time) this.inputForm.taskTime = this.getStringTime(time);
+        },
+
+        changeIntervalType() {
+            switch (this.inputRepeatForm.intervalUnit) {
+                case 'days': return this.inputRepeatForm.intervalUnit = 'weeks';
+                case 'weeks': return this.inputRepeatForm.intervalUnit = 'months';
+                case 'months': return this.inputRepeatForm.intervalUnit = 'years';
+                case 'years': return this.inputRepeatForm.intervalUnit = 'days';
+                default: break;
+            }
+        },
+
         showOverlayToAdd() {
-            this.setFormEmpty();
-            const currentTime = new Date();
-            if (!this.inputForm.taskDate) this.inputForm.taskDate = this.getStringDate(currentTime);
-            if (!this.inputForm.taskTime) this.inputForm.taskTime = this.getStringTime(new Date('2005-01-05 23:59:59'));
-            if (!this.timeToRepeat) this.timeToRepeat = this.getStringTime(new Date('2005-01-05 02:00:00'));
+            if (!this.inputForm.taskDate) this.setFromTaskDeadline(new Date(), null)
+            if (!this.inputForm.taskTime) this.setFromTaskDeadline(null, new Date('2005-01-05 23:59:59'))
+            if (!this.inputRepeatForm.intervalTime) this.inputRepeatForm.intervalTime = this.getStringTime(new Date('2005-01-05 02:00:00'));
             this.isShowInputOverlay = true;
             this.overlayType = 'add';
         },
@@ -178,6 +218,7 @@ export default {
         },
 
         closeInputOverlay() {
+            if (this.overlayType == 'edit') this.setFormContent();
             this.isShowInputOverlay = false;
         },
     }
@@ -185,7 +226,6 @@ export default {
 </script>
 
 <style scoped>
-
 .input-box-overlay {
     position: fixed;
     display: flex;
@@ -248,12 +288,14 @@ export default {
 }
 
 .input-box-item {
-    align-items: center; 
+    justify-content: center;
+    align-items: center;
     display: flex;
     white-space: nowrap;
     margin-bottom: 5px;
     width: 70%;
-    height: 10%; /* 此height无效果，目的是让动画退出时高度延迟变化 */
+    height: 10%;
+    /* 此height无效果，目的是让动画退出时高度延迟变化 */
     transition: all 0.3s ease-in-out;
 }
 
@@ -304,8 +346,6 @@ export default {
 
 .input-border-interval-date {
     text-align: center;
-    margin-left: 3px;
-    margin-right: 3px;
     width: 12%;
 }
 
@@ -313,6 +353,21 @@ export default {
     margin-left: 3px;
     margin-right: 3px;
     width: 40%;
+}
+
+.interval-type-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 14%;
+    height: 100%;
+    background-color: rgba(234, 201, 140, 0.345);
+    box-shadow: 0px 0px 10px #5989e3eb;
+    border-radius: 25%;
+}
+
+.interval-type-text {
+    transition: all 0.3s ease-in-out;
 }
 
 .input-commit-button {

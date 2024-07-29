@@ -1,7 +1,11 @@
-<!-- ToggleButton.vue -->
 <template>
-  <div class="toggle-container" @click="moveButton($event)">
-    <div class="toggle-button" :class="positionClass" @click.stop=""></div>
+  <div class="container">
+    <transition name="fade" @before-enter="beforeEnter" @enter="enter" @leave="leave">
+      <div class="box" :key="currentText">
+        {{ currentText }}
+      </div>
+    </transition>
+    <button @click="toggleText">切换</button>
   </div>
 </template>
 
@@ -9,64 +13,65 @@
 export default {
   data() {
     return {
-      position: 'center'
+      texts: ['年', '月', '日'],
+      currentIndex: 0,
     };
   },
   computed: {
-    positionClass() {
-      return {
-        'toggle-left': this.position === 'left',
-        'toggle-center': this.position === 'center',
-        'toggle-right': this.position === 'right'
-      };
-    }
+    currentText() {
+      return this.texts[this.currentIndex];
+    },
   },
   methods: {
-    moveButton(event) {
-      const containerWidth = this.$el.clientWidth;
-      const clickPosition = event.offsetX;
-      if (clickPosition < containerWidth / 3) {
-        this.position = 'left';
-      } else if (clickPosition < 2 * containerWidth / 3) {
-        this.position = 'center';
-      } else {
-        this.position = 'right';
-      }
-    }
-  }
+    toggleText() {
+      this.currentIndex = (this.currentIndex + 1) % this.texts.length;
+    },
+    beforeEnter(el) {
+      el.style.opacity = 0;
+      el.style.transform = 'translateY(20px)';
+    },
+    enter(el, done) {
+      el.offsetHeight; // trigger reflow
+      el.style.transition = 'opacity 0.5s, transform 0.5s';
+      el.style.opacity = 1;
+      el.style.transform = 'translateY(0)';
+      done();
+    },
+    leave(el, done) {
+      el.style.transition = 'opacity 0.5s, transform 0.5s';
+      el.style.opacity = 0;
+      el.style.transform = 'translateY(-20px)';
+      done();
+    },
+  },
 };
 </script>
 
 <style scoped>
-.toggle-container {
-  width: 90%;
-  height: 50px;
-  background-color: #ccc;
-  border-radius: 25px;
-  position: relative;
-  display: flex;
-  align-items: center;
+.container {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.box {
+  display: inline-block;
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1rem;
   cursor: pointer;
 }
 
-.toggle-button {
-  width: 30%;
-  height: 50px;
-  background-color: #fff;
-  border-radius: 25px;
-  position: absolute;
-  transition: left 0.3s;
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s, transform 0.5s;
 }
 
-.toggle-left {
-  left: 0;
-}
-
-.toggle-center {
-  left: calc(50% - 15%);
-}
-
-.toggle-right {
-  left: calc(100% - 30%);
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
 }
 </style>

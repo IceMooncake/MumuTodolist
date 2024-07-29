@@ -6,6 +6,7 @@ const fs = require('fs');
 const { PORT, SSH_PATH, isOnServer } = require('./config');
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
+require('./execute/repeatTask');
 
 const app = express();
 

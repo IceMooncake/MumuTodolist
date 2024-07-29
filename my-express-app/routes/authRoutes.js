@@ -19,7 +19,7 @@ router.post('/login', ipRequestLimit(10 * 1000, 5), async (req, res) => {
 
   const query = "SELECT * FROM user_data WHERE id = ?";
   const rows = await executeQuery(query, [userId]);
-  if (!rows[0]) return res.status(503).json({ error: error503Message });
+  if (!rows || !rows[0]) return res.status(503).json({ error: error503Message });
   const hashedPassword = rows[0].hashed_pwd;
 
   if (!await bcrypt.compare(pwd, hashedPassword)) {

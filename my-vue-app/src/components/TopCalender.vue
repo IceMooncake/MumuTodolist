@@ -24,6 +24,10 @@
 
 <script>
 export default {
+  props: {
+    changeShowListMini: Function,
+    setShowCalenderBtn: Function,
+  },
   data() {
     return {
       // 用来存储当前的年和月
@@ -64,6 +68,7 @@ export default {
       const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), date);
       this.selectedDate = selectedDate;
       this.$emit('sendDate', this.selectedDate);
+      this.changeShowCalender();
     },
     // 切换到上一个月
     previousMonth() {
@@ -76,6 +81,8 @@ export default {
     // 切换日历显示状态
     changeShowCalender() {
       this.isShow = !this.isShow;
+      this.changeShowListMini(this.isShow);
+      this.setShowCalenderBtn(this.isShow);
     },
   },
 };

@@ -56,7 +56,7 @@ export default {
                 this.showTip('删除成功');
                 this.showList(true, false)
             } catch (e) {
-                this.showTip('失败了www再试一下吧');
+                this.showTip(e.response.data.error);
             }
         },
 
@@ -67,7 +67,7 @@ export default {
                 if (taskId) this.showList(true, false);
                 else this.showList(true, false);
             } catch (e) {
-                this.showTip('失败了www再试一下吧');
+                this.showTip(e.response.data.error);
             }
         },
 
@@ -85,7 +85,7 @@ export default {
                 }
 
             } catch (e) {
-                this.showTip('失败了www再试一下吧');
+                this.showTip(e.response.data.error);
             }
         },
     }

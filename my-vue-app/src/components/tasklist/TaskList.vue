@@ -152,7 +152,7 @@ export default {
       this.isShowLoverTask = !this.isShowLoverTask;
     },
 
-    changeShowMini(isShowMini) {
+    changeShowListMini(isShowMini) {
       this.isShowMini = isShowMini;
     }
 
@@ -211,7 +211,7 @@ export default {
   border-radius: 5px;
   margin-bottom: 10px;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-  height: 115px;
+  height: 110px;
 }
 
 .task-item-current {
