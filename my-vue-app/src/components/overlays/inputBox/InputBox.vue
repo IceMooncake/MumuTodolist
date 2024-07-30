@@ -256,7 +256,7 @@ export default {
     align-items: center;
     transition: all 0.2s ease-in-out;
     background-color: #9edcdce4;
-    width: 90%;
+    width: 80%;
     height: auto;
     padding: 10px;
     border-radius: 5%;
