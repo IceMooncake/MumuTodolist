@@ -134,7 +134,7 @@ export default {
         return itemDate.getFullYear() === this.currentDate.getFullYear()
           && itemDate.getMonth() === this.currentDate.getMonth()
           && itemDate.getDate() === this.currentDate.getDate()
-          || item.show_only_theday !== 1;
+          || item.repeat_hour || (item.show_only_theday == 0 && !item.finish_time);
       });
     },
 
