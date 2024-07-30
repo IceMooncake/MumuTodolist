@@ -216,6 +216,7 @@ export default {
                 currentTime.setFullYear(nextRun.getFullYear(), nextRun.getMonth(), nextRun.getDate())
                 this.$refs.togglebutton.taskType = 'repeat';
                 this.inputRepeatForm.intervalUnit = item.interval_unit;
+                this.inputRepeatForm.intervalValue = item.interval_value;
                 this.inputRepeatForm.intervalTime = this.getStringTime(nextRun);
             }
             this.inputForm.taskId = item.id;

@@ -6,8 +6,11 @@
     <p class="task-detail">{{ item.task_detail }}</p>
     <!-- 任务时间 -->
     <div class="task-time-container-left" v-if="item.repeat_hour">
+      <span class="task-time-text task-time-purple">
+         每{{ item.interval_value }}{{ getIntervalUnit }}
+      </span>
       <span class="task-time-text task-time-cyan">
-         截止当日{{ item.deadline }}
+         当日{{ item.deadline }}截止
       </span>
     </div>
     <div class="task-time-container-right">
@@ -27,6 +30,17 @@ export default {
   props: {
     item: Object,
     isHidden: Boolean,
+  },
+  computed: {
+    getIntervalUnit() {
+      switch(this.item.interval_unit) {
+        case 'years': return "年";
+        case 'weeks': return "周";
+        case 'months': return "月";
+        case 'days': return "天";
+        default: return "";
+      }
+    }
   }
 }
 </script>

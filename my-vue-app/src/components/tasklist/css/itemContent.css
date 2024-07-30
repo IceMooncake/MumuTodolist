@@ -58,6 +58,10 @@
   color: red;
 }
 
+.task-time-purple {
+  color: rgba(84, 51, 201, 0.767);
+}
+
 .task-time-cyan {
   color: rgb(20, 142, 128);
 }
