@@ -15,10 +15,10 @@
     </div>
     <div class="task-time-container-right">
       <span class="task-time-text" :class="{ 'task-time-red': item.isOverTime && !item.finish_time }"
-        v-if="!item.repeat_hour">
+        v-if="!item.next_run">
         {{ item.deadline_show }}
       </span>
-      <span v-if="item.repeat_hour" class="task-time-text">
+      <span v-if="item.next_run" class="task-time-text">
         下次: {{ item.next_run_show }}
       </span>
     </div>
