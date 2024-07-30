@@ -264,7 +264,7 @@ export default {
     align-items: center;
     transition: all 0.2s ease-in-out;
     background-color: #9edcdce4;
-    width: 80%;
+    width: 90%;
     height: auto;
     padding: 10px;
     border-radius: 5%;
@@ -303,7 +303,7 @@ export default {
     display: flex;
     white-space: nowrap;
     margin-bottom: 5px;
-    width: 70%;
+    width: 90%;
     height: 10%;
     /* 此height无效果，目的是让动画退出时高度延迟变化 */
     transition: all 0.3s ease-in-out;
