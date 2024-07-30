@@ -4,6 +4,8 @@
         <div class="header-btn" @click="changePasswordsOverlay()">改密</div>
         <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowLoverTask === false }"
             @click="changeShowLoverBtn(); coldDownShowLoverBtn()" :disabled="disShowLoverBtn">偷窥</button>
+        <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowRepeatTask === false }"
+            @click="changeShowRepeatBtn(); coldDownShowRepeatBtn()" :disabled="disShowRepeatBtn">循环</button>
         <button class="change-able-btn" :class="{ 'change-able-btn-false': isShowCalender === false }"
             @click="changeShowCalenderBtn(); coldDownShowCalender()" :disabled="disCalenderBtn">日历</button>
     </div>
@@ -16,13 +18,16 @@ export default {
         logout: Function,
         changePasswordsOverlay: Function,
         changeShowLoverTask: Function,
+        changeShowRepeatTask: Function,
         changeShowCalender: Function,
     },
     data() {
         return {
             isShowLoverTask: false,
+            isShowRepeatTask: false,
             isShowCalender: false,
             disShowLoverBtn: false,
+            disShowRepeatBtn: false,
             disCalenderBtn: false,
         };
     },
@@ -34,6 +39,14 @@ export default {
         changeShowLoverBtn() {
             this.isShowLoverTask = !this.isShowLoverTask;
             this.changeShowLoverTask();
+        },
+        coldDownShowRepeatBtn() {
+            this.disShowRepeatBtn = true;
+            setTimeout(() => { this.disShowRepeatBtn = false }, 500);
+        },
+        changeShowRepeatBtn() {
+            this.isShowRepeatTask = !this.isShowRepeatTask;
+            this.changeShowRepeatTask();
         },
         coldDownShowCalender() {
             this.disCalenderBtn = true;

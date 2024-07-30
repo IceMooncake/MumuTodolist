@@ -11,19 +11,19 @@
         </div>
         <!--置顶按钮-->
         <div class="edit-button edit-button-totop" @click="setCurrentTask(item.id)"
-            v-if="!item.isCurrentTask && !item.finish_time">
+            v-if="!item.isCurrentTask && !item.finish_time && !item.repeat_hour">
             <span class="edit-button-text">↑</span>
         </div>
         <!--取消置顶按钮-->
-        <div class="edit-button edit-button-totop" @click="setCurrentTask(null)" v-if="item.isCurrentTask">
+        <div class="edit-button edit-button-totop" @click="setCurrentTask(null)" v-if="item.isCurrentTask && !item.repeat_hour">
             <span class="edit-button-text">↓</span>
         </div>
         <!--完成按钮-->
-        <div class="edit-button edit-button-finish" @click="completTask(item.id, 0)" v-if="!item.finish_time">
+        <div class="edit-button edit-button-finish" @click="completTask(item.id, 0)" v-if="!item.finish_time && !item.repeat_hour">
             <span class="edit-button-text">√</span>
         </div>
         <!--取消完成按钮-->
-        <div class="edit-button edit-button-finish" @click="completTask(item.id, 1)" v-if="item.finish_time">
+        <div class="edit-button edit-button-finish" @click="completTask(item.id, 1)" v-if="item.finish_time && !item.repeat_hour">
             <span class="edit-button-text">←</span>
         </div>
     </div>
@@ -52,7 +52,8 @@ export default {
     methods: {
         async deleteTask(taskId) {
             try {
-                await axios.delete(`${apiUrl}/api/deleteTask/${taskId}`);
+                if(!this.item.repeat_hour) await axios.delete(`${apiUrl}/api/deleteTask/${taskId}`);
+                else await axios.delete(`${apiUrl}/api/deleteRepeatTask/${taskId}`);
                 this.showTip('删除成功');
                 this.showList(true, false)
             } catch (e) {
@@ -93,65 +94,4 @@ export default {
 </script>
 
 
-<style scoped>
-.task-edit-overlay {
-    z-index: 1;
-    display: flex;
-    position: absolute;
-    opacity: 1;
-    left: 0vh;
-    justify-content: center;
-    align-items: center;
-    margin: 0 auto;
-    width: 100%;
-    height: 100%;
-    border-radius: 5px;
-    transition: all 0.32s ease;
-    background-color: #00000010;
-}
-
-.task-edit-overlay-hidden {
-    z-index: 0;
-    opacity: 0;
-    left: 100%;
-}
-
-.edit-button {
-    width: 55px;
-    height: 55px;
-    margin-left: 2%;
-    margin-right: 2%;
-    border-radius: 50%;
-    border: none;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    /* 添加阴影效果 */
-}
-
-.edit-button-delete {
-    background-color: rgba(172, 77, 59, 0.792);
-}
-
-.edit-button-alter {
-    background-color: rgba(50, 197, 205, 0.642)
-}
-
-.edit-button-totop {
-    background-color: rgba(0, 0, 255, 0.5);
-}
-
-.edit-button-finish {
-    background-color: rgba(114, 254, 98, 0.596);
-}
-
-.edit-button-text {
-    color: rgb(255, 255, 255);
-    font-weight: bold;
-}
-</style>
+<style src="./css/itemOverlay.css" scoped> </style>

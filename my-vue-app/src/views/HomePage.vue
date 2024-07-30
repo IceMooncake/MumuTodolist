@@ -1,7 +1,7 @@
 <template>
   <div class="container" :class="{ 'show-content': isShowContent }" @click="resetClickItem()">
     <!--头部导航栏-->
-    <HeaderBar ref="headerbar" :changeShowLoverTask="changeShowLoverTask" :changePasswordsOverlay="changePasswordsOverlay"
+    <HeaderBar ref="headerbar" :changeShowLoverTask="changeShowLoverTask" :changeShowRepeatTask="changeShowRepeatTask" :changePasswordsOverlay="changePasswordsOverlay"
       :logout="logout" :changeShowCalender="changeShowCalender" />
     <!--日历-->
     <TopCalender ref="calender" @sendDate="changeListDate" :changeShowListMini="changeShowListMini" :setShowCalenderBtn="setShowCalenderBtn"/>
@@ -55,6 +55,11 @@ export default {
 
     changeShowLoverTask() {
       this.$refs.tasklist.changeShowLoverTask();
+      this.$refs.tasklist.showList(false, true);
+    },
+
+    changeShowRepeatTask() {
+      this.$refs.tasklist.changeShowRepeatTask();
       this.$refs.tasklist.showList(false, true);
     },
 

@@ -20,8 +20,8 @@
 <script>
 import axios from 'axios';
 const apiUrl = process.env.VUE_APP_API_URL;
-import TaskListEditOverlay from '@/components/tasklist/TaskListEditOverlay.vue';
-import TaskListItem from '@/components/tasklist/TaskListItem.vue';
+import TaskListEditOverlay from '@/components/tasklist/ItemOverlay.vue';
+import TaskListItem from '@/components/tasklist/ItemContent.vue';
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -38,24 +38,29 @@ export default {
 
   data() {
     return {
-      isShowLoverTask: false,
       showTaskList: [],
       selfTaskList: [],
+      selfRepeatTaskList: [],
       loverTaskList: [],
+      loverRepeatTaskList: [],
       selfCurrentTaskId: null,
       loverCurrentTaskId: null,
       selfUserId: this.$route.params.id,
       loverUserId: this.$route.params.id == 1 ? 2 : 1,
       clickItem: { id: null },
       currentDate: new Date(),
-      isShowMini: false, // 控制列表以短列表显示（给日历留位置）
+      isShowLoverTask: false,
+      isShowRepeatTask: false,
+      isShowMini: false,
     };
   },
 
   methods: {
     // 获取当前是用户列表还是情侣列表
-    getCurrentRoleList() {
-      return this.isShowLoverTask ? [...this.loverTaskList] : [...this.selfTaskList];
+    getCurrentShowList() {
+      return this.isShowLoverTask ?
+        (this.isShowRepeatTask ? [...this.loverRepeatTaskList] : [...this.loverTaskList]) :
+        (this.isShowRepeatTask ? [...this.selfRepeatTaskList] : [...this.selfTaskList]);
     },
 
     // 格式化时间
@@ -89,7 +94,10 @@ export default {
       // 超时未完成的任务做标志
       taskList.forEach(item => { if (new Date(item.deadline).getTime() - currentTime.getTime() < 0) item.isOverTime = true });
       // 正确显示时间
-      taskList.forEach(item => { item.deadline_show = this.formatTime(new Date(item.deadline)) });
+      taskList.forEach(item => {
+        if (!item.repeat_hour) item.deadline_show = this.formatTime(new Date(item.deadline));
+        else item.next_run_show = this.formatTime(new Date(item.next_run));
+      });
       // 返回列表
       return taskList;
     },
@@ -99,12 +107,21 @@ export default {
       try {
         let response = await axios.get(`${apiUrl}/api/getCurrentTaskId?userId=${this.selfUserId}`);
         this.selfCurrentTaskId = response.data.taskId;
+
         response = await axios.get(`${apiUrl}/api/getTasks?userId=${this.selfUserId}`);
         this.selfTaskList = this.formatTaskList(response.data.tasks);
+
         response = await axios.get(`${apiUrl}/api/getCurrentTaskId?userId=${this.loverUserId}`);
         this.loverCurrentTaskId = response.data.taskId;
+
         response = await axios.get(`${apiUrl}/api/getTasks?userId=${this.loverUserId}`);
         this.loverTaskList = this.formatTaskList(response.data.tasks);
+
+        response = await axios.get(`${apiUrl}/api/getRepeatTasks?userId=${this.selfUserId}`);
+        this.selfRepeatTaskList = this.formatTaskList(response.data.tasks);
+
+        response = await axios.get(`${apiUrl}/api/getRepeatTasks?userId=${this.loverUserId}`);
+        this.loverRepeatTaskList = this.formatTaskList(response.data.tasks);
       } catch (e) {
         console.error(e);
       }
@@ -117,22 +134,23 @@ export default {
         return itemDate.getFullYear() === this.currentDate.getFullYear()
           && itemDate.getMonth() === this.currentDate.getMonth()
           && itemDate.getDate() === this.currentDate.getDate()
-          || item.show_only_theday === 0;
+          || item.show_only_theday !== 1;
       });
     },
 
     // 展示列表的退出和进入(是否重新获取列表，是否展示进出动画)
     async showList(isRefetch = false, showAnimation = false) {
       if (isRefetch) await this.fetchItems();
-      let showTaskList = this.getCurrentRoleList();
+      let showTaskList = this.getCurrentShowList();
       showTaskList = this.getDateList(showTaskList);
       // 展示动画
       if (showAnimation) {
-        const delayTime = 200 / this.showTaskList.length;
+        let delayTime = 200 / this.showTaskList.length;
         while (this.showTaskList.length > 0) {
           this.showTaskList.pop();
           await delay(delayTime);
         }
+        delayTime = 200 / showTaskList.length;
         for (const item of showTaskList) {
           this.showTaskList.push(item);
           await delay(delayTime);
@@ -147,9 +165,12 @@ export default {
       this.clickItem = (this.clickItem.id === item.id) ? { id: null } : item;
     },
 
-
     changeShowLoverTask() {
       this.isShowLoverTask = !this.isShowLoverTask;
+    },
+
+    changeShowRepeatTask() {
+      this.isShowRepeatTask = !this.isShowRepeatTask;
     },
 
     changeShowListMini(isShowMini) {
@@ -166,59 +187,4 @@ export default {
 </script>
 
 
-<style scoped>
-.list-move {
-  transition: transform 1s ease-in-out;
-}
-
-.list-enter-active {
-  transform: translateY(50px);
-  opacity: 0;
-}
-
-.list-leave-active {
-  transform: translateY(50px);
-  opacity: 0;
-}
-
-.list-enter {
-  opacity: 1;
-}
-
-.task-list {
-  overflow-y: auto;
-  transition: all 0.3s ease-in-out;
-  max-height: calc(100% - 60px);
-  width: 90%;
-  scroll-behavior: smooth;
-  bottom: 20px;
-}
-
-.task-list-mini {
-  max-height: calc(100% - 400px);
-}
-
-.task-list::-webkit-scrollbar {
-  width: 0;
-}
-
-.task-item {
-  transition: all 0.2s ease-in-out, opacity 0.12s ease-in-out;
-  position: relative;
-  margin: 0 auto;
-  border: 1px solid #cccccc;
-  background-color: #ecceec;
-  border-radius: 5px;
-  margin-bottom: 10px;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-  height: 110px;
-}
-
-.task-item-current {
-  background-color: #87ef8c62
-}
-
-.task-item-finished {
-  background-color: #00000013;
-}
-</style>
+<style src="./css/tasklist.css" scoped></style>

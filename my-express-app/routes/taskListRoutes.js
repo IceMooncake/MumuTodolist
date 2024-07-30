@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const executeQuery = require('../utils/executeQuery');
 const ipRequestLimit = require('../middleware/ipRequestLimit');
-const { error400Message, error503Message } = require('../config');
+const { error503Message } = require('../config');
 
 /** 获取任务列表 */
 router.get('/getTasks', ipRequestLimit(1 * 1000, 10), async (req, res) => {
@@ -22,18 +22,9 @@ router.get('/getCurrentTaskId', ipRequestLimit(1 * 1000, 10), async (req, res) =
 
 /** 增加任务列表 */
 router.post('/addTask', ipRequestLimit(1 * 1000, 10), async (req, res) => {
-    const { task_type, user_id, show_only_theday, task_name, task_detail, deadline, interval_unit, interval_value, next_run, repeat_hour, repeat_minute } = req.body;
-    let rows = null;
-    if (task_type === 'onlyTheday' || task_type === 'longTerm') {
-        const query = "INSERT INTO task_list (user_id, show_only_theday, task_name, task_detail, deadline) VALUES (?, ?, ?, ?, ?)";
-        rows = await executeQuery(query, [user_id, show_only_theday, task_name, task_detail, deadline]);
-    } else if (task_type === 'repeat') {
-        const now = new Date();
-        now.setHours(0,0,0,0);
-        if (now > new Date(next_run)) return res.status(400).json({ error: error400Message + "循环任务日期不可早于今天" });
-        const query = "INSERT INTO repeat_task (user_id, task_name, task_detail, deadline, interval_unit, interval_value, next_run, repeat_hour, repeat_minute) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        rows = await executeQuery(query, [user_id, task_name, task_detail, deadline, interval_unit, interval_value, next_run, repeat_hour, repeat_minute]);
-    }
+    const { user_id, show_only_theday, task_name, task_detail, deadline } = req.body;
+    const query = "INSERT INTO task_list (user_id, show_only_theday, task_name, task_detail, deadline) VALUES (?, ?, ?, ?, ?)";
+    const rows = await executeQuery(query, [user_id, show_only_theday, task_name, task_detail, deadline]);
     if (!rows) return res.status(503).json({ error: error503Message });
     return res.status(200).json({ success: true });
 })
@@ -48,9 +39,9 @@ router.delete('/deleteTask/:taskId', ipRequestLimit(1 * 1000, 10), async (req, r
 
 /** 修改任务列表 */
 router.put('/updateTask', ipRequestLimit(1 * 1000, 10), async (req, res) => {
-    const { task_id, user_id, task_name, task_detail, deadline } = req.body;
-    const query = "UPDATE task_list SET user_id = ?, task_name = ?, task_detail = ?, deadline = ? WHERE id = ?";
-    const rows = await executeQuery(query, [user_id, task_name, task_detail, deadline, task_id]);
+    const { task_id, task_name, task_detail, deadline } = req.body;
+    const query = "UPDATE task_list SET task_name = ?, task_detail = ?, deadline = ? WHERE id = ?";
+    const rows = await executeQuery(query, [task_name, task_detail, deadline, task_id]);
     if (!rows) return res.status(503).json({ error: error503Message });
     return res.status(200).json({ success: true });
 })

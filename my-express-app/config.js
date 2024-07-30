@@ -10,6 +10,6 @@ module.exports = {
   DB_NAME: process.env.DB_NAME || 'database',
   secretKey: process.env.SECRET_KEY || 'secretKet',
   isOnServer: process.env.IS_ON_SERVER || 0,
-  error503Message: '数据库执行失败 多试几次吧www',
-  error400Message: '填写错误：'
+  error401Message: '认证失败',
+  error503Message: '数据库执行失败',
 };

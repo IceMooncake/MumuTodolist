@@ -18,7 +18,7 @@
                     <input type="time" v-model="inputForm.taskTime" class="input-border input-border-deadline-time">
                 </div>
                 <div class="input-box-item" :class="{ 'input-box-item-hidden': getAddTaskType() != 'repeat' }"
-                    v-show="overlayType === 'add'">
+                    v-show="overlayType === 'add' || (overlayType === 'edit' && getAddTaskType() == 'repeat')">
                     <span>每隔&nbsp;</span>
                     <input type="number" v-model="inputRepeatForm.intervalValue" @input="validateDay()"
                         class="input-border input-border-interval-date" />
@@ -121,30 +121,36 @@ export default {
             return hour + ':' + minute;
         },
 
-        // TODO: 设置三种任务的添加方式，长期任务完成后仅在当天显示
+        getSendForm() {
+            const form = {
+                task_id: this.inputForm.taskId,
+                user_id: this.currentUserId,
+                task_name: this.inputForm.taskName,
+                task_detail: this.inputForm.taskDetail,
+                deadline: this.inputForm.taskDate + ' ' + this.inputForm.taskTime
+            };
+            switch (this.getAddTaskType()) {
+                case 'onlyTheday': form.show_only_theday = 1; break;
+                case 'longTerm': form.show_long_theday = 0; break;
+                case 'repeat': {
+                    const formatIntervalTime = new Date('2005-01-05 ' + this.inputRepeatForm.intervalTime);
+                    const chooseDay = new Date(form.deadline);
+                    form.interval_unit = this.inputRepeatForm.intervalUnit;
+                    form.interval_value = this.inputRepeatForm.intervalValue;
+                    form.next_run = this.getStringDate(chooseDay) + ' ' + this.getStringTime(formatIntervalTime);
+                    form.repeat_hour = formatIntervalTime.getHours();
+                    form.repeat_minute = formatIntervalTime.getMinutes();
+                }
+            }
+            return form;
+        },
+
         async addTask() {
             if (!this.checkFormEmpty()) {
-                const item = {
-                    task_type: this.getAddTaskType(),
-                    user_id: this.currentUserId,
-                    task_name: this.inputForm.taskName,
-                    task_detail: this.inputForm.taskDetail,
-                    deadline: this.inputForm.taskDate + ' ' + this.inputForm.taskTime
-                };
-                switch (this.getAddTaskType()) {
-                    case 'onlyTheday': item.show_only_theday = 1; break;
-                    case 'longTerm': item.show_long_theday = 0; break;
-                    case 'repeat': {
-                        const chooseDay = new Date(item.deadline);
-                        item.interval_unit = this.inputRepeatForm.intervalUnit;
-                        item.interval_value = this.inputRepeatForm.intervalValue;
-                        item.next_run = this.getStringDate(chooseDay) + ' ' + this.getStringTime(chooseDay);
-                        item.repeat_hour = new Date('2005-01-05 ' + this.inputRepeatForm.intervalTime).getHours();
-                        item.repeat_minute = new Date('2005-01-05 ' + this.inputRepeatForm.intervalTime).getMinutes();
-                    }
-                }
+                const form = this.getSendForm();
                 try {
-                    await axios.post(`${apiUrl}/api/addTask`, item);
+                    if (this.getAddTaskType() == 'repeat') await axios.post(`${apiUrl}/api/addRepeatTask`, form);
+                    else await axios.post(`${apiUrl}/api/addTask`, form);
                     this.showTip('添加成功');
                     this.showList(true, false);
                     this.closeInputOverlay();
@@ -156,16 +162,10 @@ export default {
 
         async updateTask() {
             if (!this.checkFormEmpty()) {
-                const inputForm = this.inputForm;
-                const item = {
-                    task_id: this.inputForm.taskId,
-                    user_id: this.currentUserId,
-                    task_name: inputForm.taskName,
-                    task_detail: inputForm.taskDetail,
-                    deadline: inputForm.taskDate + ' ' + inputForm.taskTime,
-                }
+                const form = this.getSendForm();
                 try {
-                    await axios.put(`${apiUrl}/api/updateTask`, item);
+                    if (this.getAddTaskType() == 'repeat') await axios.put(`${apiUrl}/api/updateRepeatTask`, form);
+                    else await axios.put(`${apiUrl}/api/updateTask`, form);
                     this.showTip('修改成功');
                     this.showList(true, false);
                     this.closeInputOverlay();
@@ -199,6 +199,7 @@ export default {
         },
 
         showOverlayToAdd() {
+            this.$refs.togglebutton.taskType = 'longTerm';
             if (!this.inputForm.taskDate) this.setFromTaskDeadline(new Date(), null)
             if (!this.inputForm.taskTime) this.setFromTaskDeadline(null, new Date('2005-01-05 23:59:59'))
             if (!this.inputRepeatForm.intervalTime) this.inputRepeatForm.intervalTime = this.getStringTime(new Date('2005-01-05 02:00:00'));
@@ -207,7 +208,16 @@ export default {
         },
 
         showOverlayToUpdate(item) {
-            const currentTime = new Date(item.deadline);
+            let currentTime = new Date(item.deadline);
+            this.$refs.togglebutton.taskType = 'longTerm';
+            if(item.repeat_hour) {
+                currentTime = new Date('2005-01-05 ' + item.deadline);
+                const nextRun = new Date(item.next_run)
+                currentTime.setFullYear(nextRun.getFullYear(), nextRun.getMonth(), nextRun.getDate())
+                this.$refs.togglebutton.taskType = 'repeat';
+                this.inputRepeatForm.intervalUnit = item.interval_unit;
+                this.inputRepeatForm.intervalTime = this.getStringTime(nextRun);
+            }
             this.inputForm.taskId = item.id;
             this.inputForm.taskName = item.task_name;
             this.inputForm.taskDetail = item.task_detail;

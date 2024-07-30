@@ -5,7 +5,8 @@ const https = require('https');
 const fs = require('fs');
 const { PORT, SSH_PATH, isOnServer } = require('./config');
 const authRoutes = require('./routes/authRoutes');
-const taskRoutes = require('./routes/taskRoutes');
+const taskListRoutes = require('./routes/taskListRoutes');
+const repeatTaskRoutes = require('./routes/repeatTaskRoutes');
 require('./execute/repeatTask');
 
 const app = express();
@@ -15,7 +16,8 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use('/api', authRoutes);
-app.use('/api', taskRoutes);
+app.use('/api', taskListRoutes);
+app.use('/api', repeatTaskRoutes);
 
 if (isOnServer == 1) {
   const server = https.createServer({
