@@ -95,7 +95,7 @@ export default {
       taskList.forEach(item => { if (new Date(item.deadline).getTime() - currentTime.getTime() < 0) item.isOverTime = true });
       // 正确显示时间
       taskList.forEach(item => {
-        if (!item.repeat_hour) item.deadline_show = this.formatTime(new Date(item.deadline));
+        if (!item.next_run) item.deadline_show = this.formatTime(new Date(item.deadline));
         else item.next_run_show = this.formatTime(new Date(item.next_run));
       });
       // 返回列表
