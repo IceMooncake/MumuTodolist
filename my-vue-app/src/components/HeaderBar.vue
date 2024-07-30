@@ -66,18 +66,22 @@ export default {
 
 <style scoped>
 .header-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 100%;
-    padding: 10px;
+    padding: 8px;
     margin-bottom: 0;
+    white-space: nowrap;
     overflow: hidden;
 }
 
 .header-btn {
     display: inline-block;
-    padding: 7px 15px;
+    padding: 5px 10px;
     background-color: rgba(150, 28, 146, 0.365);
-    font-size: 15px;
-    margin-right: 10px;
+    font-size: 13px;
+    margin-right: 8px;
     color: #fff;
     border: none;
     border-radius: 20px;
@@ -86,10 +90,10 @@ export default {
 
 .change-able-btn {
     display: inline-block;
-    padding: 7px 15px;
+    padding: 5px 10px;
     background-color: rgba(40, 28, 150, 0.365);
-    font-size: 15px;
-    margin-right: 10px;
+    font-size: 13px;
+    margin-right: 8px;
     color: #fff;
     border: none;
     border-radius: 20px;
