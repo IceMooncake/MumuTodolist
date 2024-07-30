@@ -19,17 +19,13 @@
                 </div>
                 <div class="input-box-item" :class="{ 'input-box-item-hidden': getAddTaskType() != 'repeat' }"
                     v-show="overlayType === 'add' || (overlayType === 'edit' && getAddTaskType() == 'repeat')">
-                    <span>每隔&nbsp;</span>
+                    <span>每隔</span>
                     <input type="number" v-model="inputRepeatForm.intervalValue" @input="validateDay()"
                         class="input-border input-border-interval-date" />
-                    <span>&nbsp;</span>
                     <div class="interval-type-box" @click="changeIntervalType()">
-                        <span class='interval-type-text'>{{ getintervalUnitString }}</span>
+                        <span>{{ getintervalUnitString }}</span>
                     </div>
-                    <span>&nbsp;|&nbsp;在</span>
-                    <input type="time" v-model="inputRepeatForm.intervalTime"
-                        class="input-border input-border-interval-time">
-                    <span>添加</span>
+                    <span>重复一次</span>
                 </div>
                 <button class="input-commit-button" @click="closeInputOverlay()">取消</button>
                 <button class="input-commit-button" @click="buttonCommit()">确认</button>
@@ -53,7 +49,7 @@ export default {
             isShowInputOverlay: false,
             overlayType: 'add',
             currentUserId: this.$route.params.id,
-            inputRepeatForm: { intervalUnit: 'days', intervalValue: 1, intervalTime: '' },
+            inputRepeatForm: { intervalUnit: 'days', intervalValue: 1 },
             inputForm: { taskId: '', taskName: '', taskDetail: '', taskDate: '', taskTime: '' },
         }
     },
@@ -133,13 +129,10 @@ export default {
                 case 'onlyTheday': form.show_only_theday = 1; break;
                 case 'longTerm': form.show_only_theday = 0; break;
                 case 'repeat': {
-                    const formatIntervalTime = new Date('2005-01-05 ' + this.inputRepeatForm.intervalTime);
                     const chooseDay = new Date(form.deadline);
                     form.interval_unit = this.inputRepeatForm.intervalUnit;
                     form.interval_value = this.inputRepeatForm.intervalValue;
-                    form.next_run = this.getStringDate(chooseDay) + ' ' + this.getStringTime(formatIntervalTime);
-                    form.repeat_hour = formatIntervalTime.getHours();
-                    form.repeat_minute = formatIntervalTime.getMinutes();
+                    form.next_run = this.getStringDate(chooseDay) + ' ' + this.getStringTime(new Date('2005-01-05 00:00:00'));
                 }
             }
             return form;
@@ -152,6 +145,7 @@ export default {
                     if (this.getAddTaskType() == 'repeat') await axios.post(`${apiUrl}/api/addRepeatTask`, form);
                     else await axios.post(`${apiUrl}/api/addTask`, form);
                     this.showTip('添加成功');
+                    this.setFormContent();
                     this.showList(true, false);
                     this.closeInputOverlay();
                 } catch (e) {
@@ -199,10 +193,8 @@ export default {
         },
 
         showOverlayToAdd() {
-            this.$refs.togglebutton.taskType = 'onlyTheday';
             if (!this.inputForm.taskDate) this.setFromTaskDeadline(new Date(), null)
             if (!this.inputForm.taskTime) this.setFromTaskDeadline(null, new Date('2005-01-05 23:59:59'))
-            if (!this.inputRepeatForm.intervalTime) this.inputRepeatForm.intervalTime = this.getStringTime(new Date('2005-01-05 02:00:00'));
             this.isShowInputOverlay = true;
             this.overlayType = 'add';
         },
@@ -210,14 +202,13 @@ export default {
         showOverlayToUpdate(item) {
             let currentTime = new Date(item.deadline);
             this.$refs.togglebutton.taskType = 'longTerm';
-            if(item.repeat_hour) {
+            if(item.next_run) {
                 currentTime = new Date('2005-01-05 ' + item.deadline);
                 const nextRun = new Date(item.next_run)
                 currentTime.setFullYear(nextRun.getFullYear(), nextRun.getMonth(), nextRun.getDate())
                 this.$refs.togglebutton.taskType = 'repeat';
                 this.inputRepeatForm.intervalUnit = item.interval_unit;
                 this.inputRepeatForm.intervalValue = item.interval_value;
-                this.inputRepeatForm.intervalTime = this.getStringTime(nextRun);
             }
             this.inputForm.taskId = item.id;
             this.inputForm.taskName = item.task_name;
@@ -299,9 +290,9 @@ export default {
 }
 
 .input-box-item {
+    display: flex;
     justify-content: center;
     align-items: center;
-    display: flex;
     white-space: nowrap;
     margin-bottom: 5px;
     width: 90%;
@@ -358,27 +349,18 @@ export default {
 .input-border-interval-date {
     text-align: center;
     width: 12%;
-}
-
-.input-border-interval-time {
-    margin-left: 3px;
-    margin-right: 3px;
-    width: 40%;
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
 .interval-type-box {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 14%;
+    text-align: center;
     height: 100%;
-    background-color: rgba(234, 201, 140, 0.345);
+    width: 10%;
+    background-color: rgba(72, 193, 41, 0.345);
     box-shadow: 0px 0px 10px #5989e3eb;
-    border-radius: 25%;
-}
-
-.interval-type-text {
-    transition: all 0.3s ease-in-out;
+    border-radius: 20%;
+    margin-right: 10px;
 }
 
 .input-commit-button {

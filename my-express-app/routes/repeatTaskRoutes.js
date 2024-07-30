@@ -21,10 +21,10 @@ router.get('/getRepeatTasks', ipRequestLimit(1 * 1000, 10), async (req, res) => 
 
 /** 增加任务列表 */
 router.post('/addRepeatTask', ipRequestLimit(1 * 1000, 10), async (req, res) => {
-    const { user_id, task_name, task_detail, deadline, interval_unit, interval_value, next_run, repeat_hour, repeat_minute } = req.body;
+    const { user_id, task_name, task_detail, deadline, interval_unit, interval_value, next_run } = req.body;
     if (isBeforeStartOfToday(new Date(next_run))) return res.status(400).json({ error: "日期不可早于今天" });
-    const query = "INSERT INTO repeat_task (user_id, task_name, task_detail, deadline, interval_unit, interval_value, next_run, repeat_hour, repeat_minute) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    const rows = await executeQuery(query, [user_id, task_name, task_detail, deadline, interval_unit, interval_value, next_run, repeat_hour, repeat_minute]);
+    const query = "INSERT INTO repeat_task (user_id, task_name, task_detail, deadline, interval_unit, interval_value, next_run) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    const rows = await executeQuery(query, [user_id, task_name, task_detail, deadline, interval_unit, interval_value, next_run]);
     if (!rows) return res.status(503).json({ error: error503Message });
     return res.status(200).json({ success: true });
 })
@@ -41,8 +41,8 @@ router.delete('/deleteRepeatTask/:taskId', ipRequestLimit(1 * 1000, 10), async (
 router.put('/updateRepeatTask', ipRequestLimit(1 * 1000, 10), async (req, res) => {
     const { task_id, task_name, task_detail, deadline, interval_unit, interval_value, next_run, repeat_hour, repeat_minute } = req.body;
     if (isBeforeStartOfToday(new Date(next_run))) return res.status(400).json({ error: "日期不可早于今天" });
-    const query = "UPDATE repeat_task SET task_name = ?, task_detail = ?, deadline = ?, interval_unit = ?, interval_value = ?, next_run = ?, repeat_hour = ?, repeat_minute = ? WHERE id = ?";
-    const rows = await executeQuery(query, [task_name, task_detail, deadline, interval_unit, interval_value, next_run, repeat_hour, repeat_minute, task_id]);
+    const query = "UPDATE repeat_task SET task_name = ?, task_detail = ?, deadline = ?, interval_unit = ?, interval_value = ?, next_run = ? WHERE id = ?";
+    const rows = await executeQuery(query, [task_name, task_detail, deadline, interval_unit, interval_value, next_run, task_id]);
     if (rows.affectedRows == 0) return res.status(503).json({ error: error503Message });
     return res.status(200).json({ success: true });
 })

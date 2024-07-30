@@ -7,7 +7,7 @@ const { PORT, SSH_PATH, isOnServer } = require('./config');
 const authRoutes = require('./routes/authRoutes');
 const taskListRoutes = require('./routes/taskListRoutes');
 const repeatTaskRoutes = require('./routes/repeatTaskRoutes');
-require('./execute/repeatTask');
+require('./execute/repeatTaskPerDay');
 
 const app = express();
 

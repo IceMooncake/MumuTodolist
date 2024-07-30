@@ -40,7 +40,7 @@ export default {
         case 'days': return "天";
         default: return "";
       }
-    }
+    },
   }
 }
 </script>

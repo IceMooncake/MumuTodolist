@@ -1,8 +1,8 @@
 <!-- ToggleButton.vue -->
 <template>
   <div class="toggle-container" @click="moveButton($event)">
-    <div class="text-box" :class="{ 'text-select': this.taskType === 'onlyTheday' }">当天</div>
     <div class="text-box" :class="{ 'text-select': this.taskType === 'longTerm' }">长期</div>
+    <div class="text-box" :class="{ 'text-select': this.taskType === 'onlyTheday' }">当天</div>
     <div class="text-box" :class="{ 'text-select': this.taskType === 'repeat' }">重复</div>
     <div class="toggle-button" :class="positionClass" @click.stop=""></div>
   </div>
@@ -12,14 +12,14 @@
 export default {
   data() {
     return {
-      taskType: 'longTerm'
+      taskType: 'onlyTheday'
     };
   },
   computed: {
     positionClass() {
       return {
-        'toggle-left': this.taskType === 'onlyTheday',
-        'toggle-center': this.taskType === 'longTerm',
+        'toggle-left': this.taskType === 'longTerm',
+        'toggle-center': this.taskType === 'onlyTheday',
         'toggle-right': this.taskType === 'repeat',
       };
     }
@@ -29,9 +29,9 @@ export default {
       const containerWidth = this.$el.clientWidth;
       const clickPosition = event.offsetX;
       if (clickPosition < containerWidth / 3) {
-        this.taskType = 'onlyTheday';
-      } else if (clickPosition < 2 * containerWidth / 3) {
         this.taskType = 'longTerm';
+      } else if (clickPosition < 2 * containerWidth / 3) {
+        this.taskType = 'onlyTheday';
       } else {
         this.taskType = 'repeat';
       }

@@ -11,19 +11,19 @@
         </div>
         <!--置顶按钮-->
         <div class="edit-button edit-button-totop" @click="setCurrentTask(item.id)"
-            v-if="!item.isCurrentTask && !item.finish_time && !item.repeat_hour">
+            v-if="!item.isCurrentTask && !item.finish_time && !item.next_run">
             <span class="edit-button-text">↑</span>
         </div>
         <!--取消置顶按钮-->
-        <div class="edit-button edit-button-totop" @click="setCurrentTask(null)" v-if="item.isCurrentTask && !item.repeat_hour">
+        <div class="edit-button edit-button-totop" @click="setCurrentTask(null)" v-if="item.isCurrentTask && !item.next_run">
             <span class="edit-button-text">↓</span>
         </div>
         <!--完成按钮-->
-        <div class="edit-button edit-button-finish" @click="completTask(item.id, 0)" v-if="!item.finish_time && !item.repeat_hour">
+        <div class="edit-button edit-button-finish" @click="completTask(item.id, 0)" v-if="!item.finish_time && !item.next_run">
             <span class="edit-button-text">√</span>
         </div>
         <!--取消完成按钮-->
-        <div class="edit-button edit-button-finish" @click="completTask(item.id, 1)" v-if="item.finish_time && !item.repeat_hour">
+        <div class="edit-button edit-button-finish" @click="completTask(item.id, 1)" v-if="item.finish_time && !item.next_run">
             <span class="edit-button-text">←</span>
         </div>
     </div>
@@ -52,7 +52,7 @@ export default {
     methods: {
         async deleteTask(taskId) {
             try {
-                if(!this.item.repeat_hour) await axios.delete(`${apiUrl}/api/deleteTask/${taskId}`);
+                if(!this.item.next_run) await axios.delete(`${apiUrl}/api/deleteTask/${taskId}`);
                 else await axios.delete(`${apiUrl}/api/deleteRepeatTask/${taskId}`);
                 this.showTip('删除成功');
                 this.showList(true, false)

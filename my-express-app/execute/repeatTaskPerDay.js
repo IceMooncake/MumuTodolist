@@ -1,12 +1,13 @@
 const moment = require('moment');
 const executeQuery = require('../utils/executeQuery');
+const cron = require('node-cron');
 
 // 查询循环任务并处理
 async function processRepeatTasks() {
   const now = moment();
-  const query = `SELECT * FROM repeat_task WHERE (repeat_hour = ? AND repeat_minute = ?) AND (next_run <= ?)`;
+  const query = `SELECT * FROM repeat_task WHERE next_run <= ?`;
   // 获取需要刷新的任务
-  const tasks = await executeQuery(query, [now.hour(), now.minute(), now.toDate()]);
+  const tasks = await executeQuery(query, [now.toDate()]);
   if (tasks && tasks.length > 0) {
     for (const task of tasks) {
       let deadlineDate = moment(task.next_run);
@@ -21,7 +22,7 @@ async function processRepeatTasks() {
       // 计算下次执行时间
       let nextRun = moment(task.next_run);
       nextRun.add(task.interval_value, task.interval_unit);
-      nextRun.set({ hour: task.repeat_hour, minute: task.repeat_minute, second: 0 });
+      nextRun.set({ hour: 0, minute: 0, second: 0 });
       // 更新 last_run
       const updateQuery = `UPDATE repeat_task SET next_run = ? WHERE id = ?`;
       await executeQuery(updateQuery, [nextRun.toDate(), task.id]);
@@ -30,4 +31,4 @@ async function processRepeatTasks() {
 }
 
 // 定时任务调用
-setInterval(processRepeatTasks, 60000); // 每分钟检查一次
+cron.schedule('0 0 * * *', () => {processRepeatTasks()});

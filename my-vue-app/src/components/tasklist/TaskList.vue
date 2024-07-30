@@ -96,7 +96,10 @@ export default {
       // 正确显示时间
       taskList.forEach(item => {
         if (!item.next_run) item.deadline_show = this.formatTime(new Date(item.deadline));
-        else item.next_run_show = this.formatTime(new Date(item.next_run));
+        else {
+          const nextRun = new Date(item.next_run);
+          item.next_run_show = nextRun.getFullYear() + '-' + (nextRun.getMonth() + 1) + '-' + nextRun.getDate();
+        }
       });
       // 返回列表
       return taskList;
