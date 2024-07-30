@@ -5,7 +5,7 @@
     <!-- 任务详情 -->
     <p class="task-detail">{{ item.task_detail }}</p>
     <!-- 任务时间 -->
-    <div class="task-time-container-left" v-if="item.repeat_hour">
+    <div class="task-time-container-left" v-if="item.next_run">
       <span class="task-time-text task-time-purple">
          每{{ item.interval_value }}{{ getIntervalUnit }}
       </span>
