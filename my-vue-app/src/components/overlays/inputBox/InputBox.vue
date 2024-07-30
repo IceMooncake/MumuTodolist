@@ -131,7 +131,7 @@ export default {
             };
             switch (this.getAddTaskType()) {
                 case 'onlyTheday': form.show_only_theday = 1; break;
-                case 'longTerm': form.show_long_theday = 0; break;
+                case 'longTerm': form.show_only_theday = 0; break;
                 case 'repeat': {
                     const formatIntervalTime = new Date('2005-01-05 ' + this.inputRepeatForm.intervalTime);
                     const chooseDay = new Date(form.deadline);
@@ -199,7 +199,7 @@ export default {
         },
 
         showOverlayToAdd() {
-            this.$refs.togglebutton.taskType = 'longTerm';
+            this.$refs.togglebutton.taskType = 'onlyTheday';
             if (!this.inputForm.taskDate) this.setFromTaskDeadline(new Date(), null)
             if (!this.inputForm.taskTime) this.setFromTaskDeadline(null, new Date('2005-01-05 23:59:59'))
             if (!this.inputRepeatForm.intervalTime) this.inputRepeatForm.intervalTime = this.getStringTime(new Date('2005-01-05 02:00:00'));
