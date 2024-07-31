@@ -9,7 +9,6 @@ function toDateObject(value) {
 
 function formatTime(date) {
   date = toDateObject(date);
-  if (!date) return null;
   let hours = date.getHours();
   let minutes = date.getMinutes();
   let seconds = date.getSeconds();
@@ -21,7 +20,6 @@ function formatTime(date) {
 
 function formatDate(date) {
   date = toDateObject(date);
-  if (!date) return null;
   const year = date.getFullYear();
   let month = date.getMonth() + 1;
   let day = date.getDate();
