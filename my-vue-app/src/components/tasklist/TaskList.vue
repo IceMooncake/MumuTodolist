@@ -92,7 +92,7 @@ export default {
       // 合并两个列表
       taskList = [...unFinishedTasks, ...finishedTasks];
       // 超时未完成的任务做标志
-      taskList.forEach(item => { if (new Date(item.deadline).getTime() - currentTime.getTime() < 0) item.isOverTime = true });
+      taskList.forEach(item => { if (new Date(item.deadline).getTime() - currentTime.getTime() < 0 && !item.finish_time) item.isOverTime = true });
       // 正确显示时间
       taskList.forEach(item => {
         if (!item.next_run) item.deadline_show = this.formatTime(new Date(item.deadline));

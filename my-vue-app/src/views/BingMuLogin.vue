@@ -22,7 +22,7 @@
             </transition>
           </form>
         </div>
-        <a @click="openMarkdown" class="version-button">v {{ version }}</a>
+        <a @click="openMarkdown" class="version-button">{{ version }}</a>
       </div>
     </transition>
   </div>
